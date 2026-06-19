@@ -11,6 +11,8 @@ This repository contains the manuscript, analysis code, derived data, and figure
   - `run_response_surface_*.py` — simulator response surface over deviation/capacity/grid (source data: `response_surface_rows_*.csv`).
   - `pareto_demonstration_*.py` — Pareto-vs-conjunction demonstration.
   - `run_edf_baseline_*.py` — earliest-deadline-first recognized-scheduler baseline.
+  - `oracle_scheduler_counterfactual_*.py` — oracle scheduler-selection counterfactual (best single scheduler 1.7%, per-episode oracle 5.0% at severity 1; `fig_oracle_scheduler`).
+  - `scenario_averaged_vs_jointly_feasible_*.py` — scenario-averaged-vs-same-episode primary figure (79% marginal vs 1.2% joint; `fig_marginal_vs_joint`).
   - `diagnostic_disaggregation_*.py` — disaggregation by capacity / gate / behavior type.
   - `sensitivity_*`, `optimizev_calibration_*`, `run_preference_ablation_*`, `fleet_profit_robustness_*` — robustness analyses.
   - `make_equilibrium_figures_*.py`, `make_graphical_abstract_*.py` — figure generation.
