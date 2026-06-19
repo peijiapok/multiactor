@@ -1,0 +1,5 @@
+Multi-actor gates test EV charging across driver, fleet, and grid criteria.
+Severity-1 behavior removes same-episode all-pass outcomes.
+Request-event churn rises without higher simulator demanded kWh.
+PeakPenalty lowers peaks but does not rescue all actor failures.
+IEEE-33 screen reports EV-off feeder stress deltas.

@@ -1,0 +1,5 @@
+fleet_policy,grid_policy,capacity_pct,all_pass_rates_by_severity,monotone_nonincreasing_all_pass,first_severity_where_all_pass_below_one,first_severity_where_driver_binds,first_severity_where_fleet_binds,first_severity_where_grid_binds
+FleetServiceFirst,GridPeakPenalty,35,"1.000,0.000,0.000,0.000",True,1,1,1,1
+FleetServiceFirst,NoGridIncentive,35,"1.000,0.000,0.000,0.000",True,1,1,1,1
+FleetServiceGridWeighted,GridPeakPenalty,35,"1.000,0.000,0.000,0.000",True,1,1,1,1
+FleetServiceGridWeighted,NoGridIncentive,35,"1.000,0.000,0.000,0.000",True,1,1,1,1

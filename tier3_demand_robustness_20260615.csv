@@ -1,0 +1,9 @@
+demand_source,severity,n_episodes,all_pass_rate
+combined,0,20,1.0
+combined,1,20,0.0
+Caltech,0,20,1.0
+Caltech,1,20,0.0
+JPL,0,20,1.0
+JPL,1,20,0.0
+Office001,0,20,0.9
+Office001,1,20,0.0

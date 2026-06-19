@@ -1,0 +1,17 @@
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.toc
+# backups / superseded
+*.bak_*
+archive_superseded_drafts_*/
+# raw engine outputs (large) and caches
+runner_raw*/
+__pycache__/
+*.pyc

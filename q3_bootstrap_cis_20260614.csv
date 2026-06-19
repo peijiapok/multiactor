@@ -1,0 +1,5 @@
+severity,n_episodes,all_pass_mean,all_pass_ci95_lo,all_pass_ci95_hi,driver_gate_mean,driver_gate_ci95_lo,driver_gate_ci95_hi
+0,60,1.0,1.0,1.0,1.0,1.0,1.0
+1,60,0.0,0.0,0.0,0.03333333333333333,0.0,0.08333333333333333
+2,60,0.0,0.0,0.0,0.0,0.0,0.0
+3,60,0.0,0.0,0.0,0.0,0.0,0.0

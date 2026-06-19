@@ -1,0 +1,8 @@
+statistic,value
+n_sessions_total,29116.0
+n_with_user_inputs,16365.0
+early_departure_rate,0.3292
+departure_mismatch_gt30min_rate,0.7252
+departure_mismatch_gt60min_rate,0.5632
+median_abs_departure_mismatch_min,75.4
+plan_change_rate_userinputs_gt1,0.097

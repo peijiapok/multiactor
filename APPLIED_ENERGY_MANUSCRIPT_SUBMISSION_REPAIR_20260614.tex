@@ -1,0 +1,1080 @@
+\documentclass[12pt]{article}
+
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{setspace}
+\usepackage{authblk}
+\usepackage{caption}
+
+\setstretch{1.15}
+\captionsetup{font=small,labelfont=bf}
+\setlist[itemize]{leftmargin=1.2em}
+\setlist[enumerate]{leftmargin=1.5em}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcommand{\kwh}{\mathrm{kWh}}
+\newcommand{\figref}[1]{Fig.~\ref{#1}}
+\newcommand{\tabref}[1]{Table~\ref{#1}}
+
+\title{Multi-actor compliance feasibility of managed EV charging: participation constraints, a congestion-game diagnosis, and the incentive lever}
+\author[1]{Peijia Pok}
+\author[2]{Soomin Woo}
+\author[1]{Hwasoo Yeo\thanks{Corresponding author: hwasoo@kaist.ac.kr}}
+\affil[1]{Department of Civil and Environmental Engineering, KAIST, Daejeon, Republic of Korea}
+\affil[2]{Department of Smart Vehicle Engineering, Konkuk University, Seoul, Republic of Korea}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Highlights}
+\begin{itemize}
+    \item Multi-actor gates test EV charging across driver, fleet, and grid criteria.
+    \item Low-deviation behavior reduces same-episode all-pass acceptability to near zero.
+    \item Request-event churn, not demanded-kWh growth, explains the behavioral failure mode.
+    \item A calibrated congestion-game overlay interprets the collapse as an uncoordinated compliance equilibrium.
+    \item A bounded compliance incentive restores modelled all-pass acceptability across tested capacities.
+\end{itemize}
+
+\begin{abstract}
+Deploying managed electric-vehicle (EV) charging is a multi-actor \emph{participation} problem: a program runs only if drivers, fleet operators, and the grid each stay above their own minimum requirement at the same time, in the actual operating period. These requirements are non-compensatory---a healthy grid does not compensate a driver whose vehicle is left uncharged---so deployability is a question of joint \emph{feasibility}, not of optimizing a blended objective. We formalize each actor's requirement as a participation constraint and study the jointly-feasible set: an episode is feasible when all three constraints hold together, and the fraction of feasible episodes is a chance-constraint feasibility probability. Using a charging-demand model calibrated to public ACN-Data, we establish three results. First, trade-off optimality does not imply feasibility: a cost-optimal scheduler that Pareto-dominates a service scheduler on both cost and reliability sits entirely outside the feasible set ($0\%$ feasible episodes). Second, the feasible set has a sharp \emph{compliance threshold}: feasibility is $96.7\%$ under full compliance but falls toward zero once driver non-compliance exceeds roughly $1.5\%$ (a $\sim$98.5\% compliance requirement), and this holds under two recognized deadline-driven schedulers (least-laxity and earliest-deadline), so it is a property of behavior rather than of one scheduling rule. The failure mechanism is request-event churn---more frequent request interactions---not higher energy demand. Third, framing compliance as a congestion game, the operator's effective lever is not a better scheduler but a Pigouvian-style compliance incentive that moves the uncoordinated equilibrium back into the feasible set, with a price of anarchy near $1.5$. The behavioral layer is a model-assumed preference structure calibrated to ACN deviation magnitudes, not fitted to observed compliance, which we keep explicit. The contribution is a participation-feasibility account of managed-charging deployment, with an actionable compliance threshold and a game-theoretic incentive lever.
+\end{abstract}
+
+\noindent\textbf{Keywords:} electric vehicle charging; managed charging; multi-actor acceptability; driver behavior stress testing; fleet dispatch; distribution feeder; IEEE-33
+
+\section*{Nomenclature}
+\begin{longtable}{p{0.18\textwidth}p{0.76\textwidth}}
+\textbf{Abbreviations} & \\
+EV & Electric vehicle \\
+IEEE-33 & IEEE 33-bus radial distribution benchmark \\
+SoC & State of charge \\
+\textbf{Sets and indices} & \\
+$i \in \mathcal{I}$ & EV index \\
+$t \in \mathcal{T}$ & Simulation timestep index \\
+$s \in \mathcal{S}$ & Random-seed index \\
+$c \in \mathcal{C}$ & Capacity-level index \\
+$b \in \mathcal{B}$ & Behavior-model index \\
+$f \in \mathcal{F}$ & Fleet-policy index \\
+$g \in \mathcal{G}$ & Grid-policy index \\
+$r \in \mathcal{R}_t$ & Request event active at timestep $t$ \\
+$e$ & Simulation episode, $e=(s,c,b,f,g,H)$ \\
+\textbf{Decision and state variables} & \\
+$x^F_{r,t}$ & Fleet-recommended service action for request $r$ at timestep $t$ \\
+$x^G_{r,t}$ & Grid-adjusted service action \\
+$x_{r,t}$ & Final served action \\
+$E^{req}_r$ & Energy represented by simulator request event $r$ (kWh) \\
+$E^{dem}_{i,t}$ & Operational demanded energy used in the demanded-kWh trace (kWh) \\
+$E^{rem}_{pre},E^{rem}_{post}$ & Pre-step and post-step remaining demanded energy in the ledger audit (kWh) \\
+$E^{new}$ & New demanded-kWh increment in the ledger audit (kWh) \\
+$E^{delivered}$ & Delivered energy credited to outstanding simulator demand (kWh) \\
+$E^{release}$ & Demand reduction not explained by delivered charging, explicitly closing the ledger identity (kWh) \\
+$N^{actual},N^F$ & Actual driver-layer request-event count and fleet-recommended request-event count \\
+$\chi$ & Actual/fleet request-event ratio, $N^{actual}/N^F$ \\
+$L_t$ & Site load at timestep $t$ \\
+$P_t$ & Peak-pressure or price-related signal \\
+\textbf{Metrics and thresholds} & \\
+$A_D,A_F,A_G$ & Driver, fleet, and grid acceptability indicators \\
+$A_{all}$ & All-pass acceptability indicator \\
+$\rho_E$ & Delivered-energy ratio \\
+$\Delta_R$ & Reliability delta relative to anchor \\
+$U_D$ & Driver unmet-service metric \\
+$S_F$ & Fleet service-completion metric \\
+$Q_F$ & Fleet queue or request-volume pressure \\
+$K_F$ & Fleet cost or operating penalty proxy \\
+$\rho_P$ & Peak ratio relative to anchor \\
+$\rho_{ramp}$ & Ramp ratio relative to anchor \\
+$\Delta LF$ & Load-factor change relative to anchor \\
+$\tau$ & Generic actor-gate threshold \\
+\end{longtable}
+
+\section{Introduction}
+
+Electrification of road transport is shifting a substantial share of energy demand from liquid fuels to electricity networks. At the same time, charging infrastructure is frequently installed behind local service connections, depot transformers, workplace panels, or distribution feeders whose capacity was not designed around synchronized high-power EV charging. This creates a planning and operating problem that is central to applied energy systems: charging should deliver enough energy to drivers and fleet operations, but it should also avoid producing grid peaks, ramps, losses, and line-loading stress that undermine local power-system operation. The problem is not only to compute a schedule that improves one metric. The practical question is whether a charging-control policy is acceptable to all relevant actors under the constraints and behaviors expected during operation.
+
+The literature contains strong foundations for coordinated and decentralized EV charging control \cite{ma2013,gan2013,sortomme2011,rotering2011,richardson2012local,lee2021adaptive,nimalsiri2020,sadeghian2022,liu2019decentralized,pournaras2019}, including multi-objective formulations that expose explicit cost--service--grid trade-offs through a Pareto frontier \cite{wang2024multiobj,das2020technoecon}, simulation-driven evaluation \cite{lee2019acnsim,quiros2018}, EV integration and grid-impact modeling \cite{lopes2011,richardson2013,shaukat2018}, and facility-level EV charging cost-service trade-off analysis \cite{woo2021}. Fleet and depot charging add their own coordination layer, where connection capacity, on-site generation, and storage must be managed jointly \cite{liu2024busdepot,passow2025fleet}. A separate strand shows that managed charging depends on user acceptance, trust, perceived control, inconvenience, charging access, and broader social acceptance \cite{will2016,bailey2015,schmalfuss2015,delmonte2020,tarroja2021,sovacool2018,hardman2018,funke2019}; field pilots and randomized experiments further show that real participation, opt-out, and compliance are incentive-sensitive and only partially predictable, with monetary incentives shifting charge timing while non-monetary nudges often do not \cite{alexeenko2023pilot,dudek2021electricnation,bailey2025fieldexp,wong2023incentives,marxen2023flexibility}. Charging can also be evaluated as a service-quality and fairness problem, with waiting-time, queue-delay, and equitable-allocation metrics \cite{woo2021,danner2021,tan2023fair,tsaousoglou2023fair,theodoropoulos2022proportional}, while distribution studies show that EV charging can affect feeder voltage, loading, losses, and residential demand peaks \cite{clement2010,elnozahy2014,green2011,muratori2018,dubey2015,pieltain2011,powell2022}. These strands motivate a broader evaluation stance. A policy that is attractive for the fleet operator because it serves many requests may still be unacceptable to drivers if reliability or delivered-energy ratios degrade. A policy that reduces cost or queue activity may fail fleet service completion. A grid policy can reduce a peak ratio while leaving driver and fleet failures unresolved. Multi-criteria and social-acceptance evaluation methods are well established for energy decisions in general \cite{wang2009mcda,wustenhagen2007acceptance}, but they are rarely applied to EV charging control as a same-episode, multi-actor pass/fail screen.
+
+This paper therefore reframes the project as a question of deployment \emph{feasibility} rather than of controller superiority or objective optimization. Whether a managed-charging program can run is a multi-actor \emph{participation} problem: drivers, fleet operators, and the grid each accept and keep participating only if their own minimum requirement is met, in the actual operating period, and these requirements are \emph{non-compensatory}---a low operating cost does not compensate a grid operator facing a dangerous peak, and a healthy load shape does not compensate a driver whose vehicle is not charged in time. This is why we evaluate against per-actor \emph{gates} rather than a multi-objective optimization. A weighted-sum or Pareto formulation is compensatory: it permits a surplus in one actor's objective to offset a deficit in another's, which is exactly the trade the actors would refuse. The gates are instead each actor's individual-rationality (participation) constraint, and the object of interest is the jointly-\emph{feasible set} where all three hold together. We do not claim optimization is the wrong tool in general---constrained, robust, or chance-constrained optimization could encode the same constraints---but that the primary object for deployment is this feasible set, with any optimization secondary and \emph{within} it. Because acceptability must hold in the realized operating period rather than on average, we measure the \emph{fraction} of episodes in which all participation constraints hold jointly; this same-episode feasibility probability is a chance-constraint measure, and our central question is whether behavioral compliance keeps it high.
+
+This paper contributes to the literature by: (1) formalizing managed-charging deployability as multi-actor compliance feasibility---per-actor participation constraints whose joint, same-episode satisfaction defines a feasible set, measured by a feasibility probability---and motivating why this, rather than multi-objective optimization, is the primary object; (2) demonstrating concretely that trade-off optimality does not imply feasibility (a cost-optimal scheduler that Pareto-dominates a service scheduler on cost and reliability lies entirely outside the feasible set), together with a request-pipeline audit showing the failure is request-event churn rather than demanded-kWh growth; (3) identifying a sharp \emph{compliance threshold} on the feasible set ($\sim$98.5\% compliance) that holds under two recognized deadline-driven schedulers (least-laxity and earliest-deadline), establishing it as a property of behavior rather than of one scheduling rule; and (4) framing compliance as a congestion game whose no-incentive equilibrium coincides with the infeasible region, and analysing a Stackelberg compliance incentive---the operator's effective lever, rather than a better scheduler---that moves the equilibrium back into the feasible set, quantified by a relative price of anarchy. Behavioral severity levels are transparent model-assumed stress devices calibrated to ACN deviation magnitudes, not calibrated forecasts; the incentive mechanism is a Pigouvian-style design over a soft-calibrated behavioral model, not a fitted opt-out predictor.
+
+The broader implication is not that one controller is universally best. Managed charging programs and fleet charging controllers often assume high compliance and evaluate energy, cost, or peak metrics separately. In the tested scenarios, small behavioral deviations create request-event churn---a rise in the frequency of charging-request interactions with the dispatch pipeline \emph{without} a rise in total energy demanded---and cause actor gates to fail even when energy delivery remains high. This suggests that energy-system evaluation should include explicit stakeholder gates and request-pipeline audits when assessing whether a charging-control policy is ready for deployment.
+
+The remainder of the paper is organized as follows. Section~\ref{sec:system} describes the system context and actors. Section~\ref{sec:formulation} presents the acceptability-gate formulation and policy families. Section~\ref{sec:design} gives the experimental design and audit protocol. Section~\ref{sec:data} describes the data and simulation setup. Section~\ref{sec:results} reports the main results. Section~\ref{sec:game} develops the calibrated game-theoretic mechanism analysis. Section~\ref{sec:discussion} discusses implications. Section~\ref{sec:limitations} states limitations. Section~\ref{sec:conclusions} concludes.
+
+\section{System context and problem setting}\label{sec:system}
+
+The modeled system is a capacity-constrained EV charging facility or fleet-charging site with three decision layers. The driver layer generates charging request events and may deviate from recommendations according to a behavior model. The fleet layer selects which requests to prioritize under finite capacity. The grid layer may apply a PeakPenalty intervention that defers selected charging events when the site is exposed to peak pressure. The final service layer records delivered energy, reliability, deferrals, unserved events, and load-shape outcomes.
+
+The stakeholders are: drivers, who require adequate charging service and reliability; the fleet or facility operator, who needs service completion, operational stability, and manageable request volume; and the grid or distribution operator, who is concerned with peak ratios, ramping, load factor, line loading, losses, and feeder stress. These actors need not agree on a single objective. For example, increasing service can increase peak demand, while deferring charging for peak management can reduce driver or fleet acceptability.
+
+\figref{fig:framework} shows the system framework. Driver behavior produces actual request events. A fleet policy converts candidate events into recommended actions under charger capacity. A grid policy can adjust the recommended actions. The final charging service is evaluated against driver, fleet, and grid gates. All-pass acceptability is the logical conjunction of those three pass indicators.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/fig1_multi_actor_framework.pdf}
+\caption{Multi-actor EV charging evaluation framework. The figure summarizes the screening logic: a policy is screened as acceptable under this study's gates only when the driver, fleet, and grid gates pass simultaneously.}
+\label{fig:framework}
+\end{figure}
+
+\section{Multi-actor acceptability formulation}\label{sec:formulation}
+
+Let $i \in \mathcal{I}$ index EVs, $t \in \mathcal{T}$ index hourly simulation steps, $s \in \mathcal{S}$ index random seeds, $c \in \mathcal{C}$ index capacity levels, $b \in \mathcal{B}$ index behavior models, $f \in \mathcal{F}$ index fleet policies, and $g \in \mathcal{G}$ index grid policies. A simulation episode is denoted $e=(s,c,b,f,g,H)$, where $H$ is the horizon.
+
+The driver layer produces a request event set
+\begin{equation}
+\mathcal{R}_t = \{r: a_r=t, E_r^{req}>0, d_r \geq t\},
+\label{eq:requestset}
+\end{equation}
+where $a_r$ is the event time, $E_r^{req}$ is the requested energy represented by the simulator event, and $d_r$ is a deadline or service-risk proxy when available. The request audit adds unique identifiers and retry links. A targeted demanded-kWh trace further records simulator demand sessions using the operational balance
+\begin{equation}
+E^{dem}_{i,t}=\max\left(E^{target}_{i,t},E^{deadline}_{i,t}\right),
+\label{eq:demkwh}
+\end{equation}
+with explicit delivered, remaining, released, and unserved kWh terms. That trace supports event-level behavioral interpretation, but not field-observed energy-demand amplification.
+
+The fleet policy selects a recommended service action
+\begin{equation}
+x_{r,t}^F = \pi_f(r,t,\theta_f), \quad r \in \mathcal{R}_t,
+\label{eq:fleetpolicy}
+\end{equation}
+subject to a capacity constraint
+\begin{equation}
+\sum_{r \in \mathcal{R}_t} p_r x_{r,t}^F \leq C_c,
+\label{eq:capacity}
+\end{equation}
+where $p_r$ is the event charging power and $C_c$ is the capacity level. The grid policy modifies the fleet recommendation:
+\begin{equation}
+x_{r,t}^G = \pi_g(x_{r,t}^F,L_t,P_t,\theta_g),
+\label{eq:gridpolicy}
+\end{equation}
+where $L_t$ is site load and $P_t$ is a peak-pressure or price-related signal. The final served action is $x_{r,t}=x_{r,t}^G$. PeakPenalty is thus a grid-layer intervention, not evidence of a fleet-layer idling mechanism.
+
+Driver acceptability is represented as
+\begin{equation}
+A_D(e)=\mathbb{1}\left[ \rho_E(e)\geq \tau_E,\; \Delta_R(e)\geq \tau_R,\; U_D(e)\leq \tau_U \right],
+\label{eq:drivergate}
+\end{equation}
+where $\rho_E$ is delivered-energy ratio, $\Delta_R$ is reliability delta relative to a reference, and $U_D$ is an unmet or requested-but-not-delivered event metric when available. Fleet acceptability is
+\begin{equation}
+A_F(e)=\mathbb{1}\left[ S_F(e)\geq \tau_S,\; Q_F(e)\leq \tau_Q,\; K_F(e)\leq \tau_K \right],
+\label{eq:fleetgate}
+\end{equation}
+where $S_F$ is service completion, $Q_F$ is queue or request-volume pressure, and $K_F$ is a cost or operating penalty proxy. Grid acceptability is
+\begin{equation}
+A_G(e)=\mathbb{1}\left[ \rho_P(e)\leq \tau_P,\; \rho_{ramp}(e)\leq \tau_{ramp},\; \Delta LF(e)\geq \tau_{LF} \right],
+\label{eq:gridgate}
+\end{equation}
+with peak ratio $\rho_P$, ramp ratio $\rho_{ramp}$, and load-factor change $\Delta LF$. The load-factor criterion $\Delta LF \geq -0.05$ should be read as ``load factor must not decline by more than $5$ percentage points relative to the anchor'': a negative $\Delta LF$ means a lower (worse) load factor than LeastLaxity, so the gate passes only when load factor is held within $5$ points of the anchor. In Eqs.~\eqref{eq:drivergate}--\eqref{eq:gridgate}, the indicator equals one only when all subcriteria for that actor pass in the same episode; for readability these equations show the representative subcriteria, while the full pre-specified set actually evaluated---three driver, six fleet, and five grid criteria (14 in total)---is enumerated in Table~\ref{tab:gates}. Overall acceptability is
+\begin{equation}
+A_{all}(e)=A_D(e)A_F(e)A_G(e).
+\label{eq:allgate}
+\end{equation}
+Thus, all-pass acceptability is a same-episode logical AND of driver, fleet, and grid gates. Read game-theoretically, each actor gate is that actor's \emph{participation (individual-rationality) constraint}: the minimum standard at or above which the actor is willing to take part in the managed-charging program. An episode is then \emph{feasible} when all three participation constraints hold jointly, the all-pass indicator is the feasibility indicator, and the all-pass \emph{rate} over episodes is the same-episode feasibility probability---a chance-constraint measure of deployability that, unlike a blended objective, does not let one actor's surplus offset another's shortfall. Equations~\eqref{eq:drivergate}--\eqref{eq:allgate} are normative gates rather than physical laws. To be precise about the distinction: all fourteen acceptability criteria are \emph{normative} operational thresholds chosen by us (service ratios, waiting limits, load-shape ratios), not hard physical limits. The one genuinely \emph{physical} constraint we consider---distribution-feeder voltage feasibility---is deliberately \emph{not} one of the fourteen gates; it enters only through the separate IEEE-33 screen (Section~\ref{sec:results}), where it is base-load-determined and non-binding. The exportable part of the framework is therefore the normative-gate structure, and which specific thresholds a deployer adopts is a stakeholder choice. Their value is transparency: when a conclusion changes under a threshold sweep, the manuscript reports the conclusion as threshold-conditioned rather than robust in a threshold-independent sense.
+
+We make no claim that these fourteen criteria are a \emph{complete} stakeholder requirement set; they are a representative selection covering each actor's principal operational concern (service delivery and reliability for the driver; queueing, waiting, and cost for the fleet; load-shape stress for the grid). Natural candidates we exclude---reactive power, power factor, and harmonic distortion on the grid side, or a separate explicit driver charging-cost gate---would require a power-electronics or tariff model beyond our scope, and some are partly captured already (driver price sensitivity enters through the cheap-window behavior, fleet cost through the energy-cost and demand-charge gates). Crucially, incompleteness does not threaten the result, because the feasible set is a \emph{conjunction}: the all-pass rate is monotonically non-increasing in the number of gates, so adding any further participation constraint can only shrink the feasible set, never enlarge it. Our reported feasibility---and therefore the compliance collapse---is thus a \emph{conservative} (upper-bound) estimate of deployability; a more complete gate set would make feasibility lower and the collapse sharper, not rescue it. As for redundancy, some criteria are correlated (e.g.\ delivered-energy ratio and reliability), but the decomposition (Section~\ref{sec:robust}) shows the binding criteria are distinct mechanisms across different actors (critical-not-delivered, waiting, and load shape), so the conjunction is not driven by a single repeated constraint.
+
+\begin{table}[t]
+\centering
+\caption{Pre-specified actor-gate thresholds used in this study.}
+\label{tab:gates}
+\scriptsize
+\begin{tabularx}{\textwidth}{p{0.12\textwidth}Yp{0.13\textwidth}p{0.14\textwidth}Y}
+\hline
+Actor & Metric & Pass & Threshold & Unit or interpretation \\
+\hline
+Driver & Delivered ratio vs LeastLaxity anchor & $\geq$ & 0.95 & ratio \\
+Driver & Reliability delta vs anchor & $\geq$ & -0.5 & percentage points \\
+Driver & Critical requested-not-delivered delta vs anchor & $\leq$ & 24 & events \\
+Fleet & Requested-not-delivered delta vs anchor & $\leq$ & 117 & events \\
+Fleet & Mean queue delta vs anchor & $\leq$ & 1.0 & vehicles or queue units \\
+Fleet & Max queue delta vs anchor & $\leq$ & 2.0 & vehicles or queue units \\
+Fleet & 95th percentile wait delta vs anchor & $\leq$ & 30 & minutes \\
+Fleet & Energy-cost ratio vs anchor & $\leq$ & 1.10 & ratio \\
+Fleet & Demand-charge exposure ratio vs anchor & $\leq$ & 1.10 & ratio \\
+Grid & Peak ratio vs anchor & $\leq$ & 1.05 & ratio \\
+Grid & Ramp p95 ratio vs anchor & $\leq$ & 1.10 & ratio \\
+Grid & Peak-to-average ratio vs anchor & $\leq$ & 1.10 & ratio \\
+Grid & Squared-load proxy ratio vs anchor & $\leq$ & 1.10 & ratio \\
+Grid & Load-factor delta vs anchor & $\geq$ & -0.05 & signed delta \\
+\hline
+\end{tabularx}
+\end{table}
+
+The driver gates represent service adequacy, reliability, and critical unmet service. Delivered-energy ratio captures whether the controller provides enough energy relative to the LeastLaxity anchor, while reliability and critical requested-not-delivered events represent the service-quality risks that are central to EV charging facility operation \cite{woo2021,danner2021} and managed-charging acceptance \cite{will2016,bailey2015,schmalfuss2015,delmonte2020,tarroja2021}. The cited literature motivates service and acceptance as gate families; it does not establish the exact numeric thresholds as universal constants. The reliability-delta gate is intentionally tight relative to the delivered-energy gate, so driver failures can be triggered by small reliability losses even when aggregate delivered energy remains high.
+
+The fleet gates represent operational burden. Queue and waiting metrics measure whether charging decisions increase operational congestion, requested-not-delivered events measure service-completion risk, and cost and demand-charge exposure represent the operator's economic acceptability. These gates follow the cost-service trade-off perspective used in EV charging facility evaluation \cite{woo2021}, but the thresholds are pre-specified normative criteria for this simulation campaign.
+
+The grid gates represent load-shape discipline. Peak ratio, ramp ratio, peak-to-average ratio, squared-load proxy, and load-factor change capture whether a policy shifts stress toward the distribution system or worsens the aggregate site profile. Distribution-impact studies motivate the use of voltage, loading, losses, and load-shape metrics \cite{clement2010,elnozahy2014,green2011,muratori2018,dubey2015,pieltain2011,powell2022}. The grid gate itself is evaluated at the site level from these load-shape metrics. Separately, an IEEE-33 feeder screen (Section~\ref{sec:results}) is used as an external grid-stress lens: it is not used to define the actor gates but to translate each charging policy's load profile into representative distribution-feeder deltas relative to an EV-off baseline \cite{baran1989,thurner2018,pandapowerdoc}.
+
+When a submetric is unavailable in a specific run, it is not silently counted as a pass; the reported gate is computed from the recorded simulation outputs. The threshold families themselves are grounded in established constructs: delivered-energy ratio and critical requested-not-delivered events are standard charging service-quality and reliability measures \cite{woo2021,danner2021,tan2023fair}, queue and 95th-percentile wait deltas are standard waiting-time service metrics \cite{tan2023fair,theodoropoulos2022proportional}, and peak, ramp, and load-factor ratios are standard distribution load-shape stress measures \cite{clement2010,muratori2018,powell2022}. The exact numeric cut-points, however, are fixed normative scenario criteria rather than literature-derived constants; the threshold sensitivity analysis is included because these values are normative and could be disputed, and the decomposition in Section~\ref{sec:robust} reports which of them actually bind. The thresholds are pre-specified normative criteria, not universal constants. Threshold sensitivity is therefore used to expose dependence on those normative choices rather than to claim threshold-independent robustness. In the weekly 168 h sensitivity file, tightening the delivered-ratio threshold from 0.95 to 0.99 reduces all-pass count by 18 rows, and requiring 1.00 reduces it by 60 rows.
+
+\subsection{Policy families}
+
+The diagnostic baselines are LeastLaxity, CostOnly, and QueueAware. LeastLaxity---least-laxity-first scheduling, a standard real-time rule that serves the cars with the least deadline slack first---is used as the anchor because it is near-optimal for deadline-driven service and is not itself a poor baseline: under full compliance it achieves $93.6\%$ trip reliability with a 95th-percentile queue wait of essentially zero minutes, so passing a relative driver gate (e.g.\ delivered-energy ratio $\geq0.95$ of LeastLaxity) corresponds to genuinely high absolute service rather than a low bar. Relative gates are used so the results isolate \emph{degradation under behavior} from absolute level; we report LeastLaxity's absolute metrics so the anchor's quality is transparent, and a weaker anchor would only make the gates easier to pass, not harder. One scope point on the laxity computation: our behavioral model applies non-compliance at the level of \emph{action selection}---drivers override the recommended charging action and self-serve---while the deadline and energy-need inputs the scheduler uses to compute laxity remain truthful. We do not model \emph{information-level} non-compliance, i.e.\ misreported deadlines or energy needs that would corrupt the laxity calculation itself. Such misreporting is a distinct channel that would degrade LeastLaxity further than shown here, so our results are a conservative reading of the behavioral effect; modelling input distortion is left to future work. CostOnly and QueueAware are not presented as state-of-the-art algorithms; they are diagnostic single-objective heuristics that reveal how policies can look reasonable under one metric yet fail actor gates.
+
+FleetServiceFirst uses the simulator's LeastLaxity action rule and prioritizes service completion and reliability. FleetServiceGridWeighted starts from the LeastLaxity action vector and defers at most $20\%$ of the already-recommended \emph{flexible, low-risk} requests when a queue, peak, or price trigger is active, adding no new requests. It is a transparent robustness comparator---not a proposed controller---included only to test whether the behavioral result depends on the ServiceFirst baseline or on a particular weighting; its scoring weights and term definitions are given in Supplementary Material~\ref{sec:supp} (Eqs.~\eqref{eq:sgwservice}--\eqref{eq:sgwpriority}, Table~\ref{tab:sgwterms}).
+
+The defense of this comparator does not rest on the weight values. Critical, low-SoC, and deadline-risk requests are excluded from the deferral-eligible set by construction, so no grid-pressure weight, however large, can defer them; the coefficients only order the already-flexible, low-risk candidates among themselves. The screening result is therefore insensitive to the weights: a six-variant coefficient ablation---including a variant with all weights set equal, which removes the ordering entirely---leaves the conclusion unchanged (Supplementary Material~\ref{sec:supp}). ServiceGridWeighted is thus a fixed-scalarization robustness check, not a tunable acceptability model or a superior controller.
+
+\subsection{Algorithm}
+
+Algorithm~1 summarizes the multi-actor gate-evaluation workflow: for each episode it generates driver request events, applies the fleet and grid policies, simulates final service, and scores the driver, fleet, grid, and all-pass gates.
+
+\begin{figure}[t]
+\centering
+\fbox{\begin{minipage}{0.92\textwidth}
+\textbf{Algorithm 1. Multi-actor gate evaluation}\par\smallskip
+\textbf{Input:} seeds $\mathcal{S}$, capacities $\mathcal{C}$, behaviors $\mathcal{B}$, fleet policies $\mathcal{F}$, grid policies $\mathcal{G}$, horizon $H$.\par
+\begin{enumerate}
+    \item For each episode $e=(s,c,b,f,g,H)$, generate driver request events with unique request identifiers.
+    \item Apply the fleet policy to obtain recommended charging actions.
+    \item Apply the grid policy to obtain adjusted charging actions.
+    \item Simulate final service, deferral, and unserved outcomes.
+    \item Record driver, fleet, and grid metrics.
+    \item Compute $A_D(e)$, $A_F(e)$, $A_G(e)$, and $A_{all}(e)$.
+    \item Assign a failure pattern from the three actor gates.
+    \item Aggregate pass rates, request-event ratios, feeder deltas, and threshold sensitivity.
+\end{enumerate}
+\textbf{Output:} actor-gate matrix, failure taxonomy, audit tables, and reproducible figures.
+\end{minipage}}
+\end{figure}
+
+\section{Experimental design}\label{sec:design}
+
+The experimental workflow combines simulation runs with targeted trace checks. The request-ID trace verifies that each request event has a unique identifier, counts reconcile through the driver, fleet, grid, and final-service pipeline, and retries are represented explicitly. A subsequent demanded-kWh trace runs the targeted 28-day severity design, persists demand sessions, and reconciles the identity
+\begin{equation}
+E^{rem}_{pre}+E^{new}=E^{delivered}+E^{rem}_{post}+E^{release}
+\label{eq:ledger}
+\end{equation}
+within $10^{-4}$ kWh. Here $E^{rem}_{pre}$ and $E^{rem}_{post}$ are outstanding simulator demanded kWh before and after a vehicle step, $E^{new}$ is newly created demanded kWh, $E^{delivered}$ is charging credited to outstanding demand, and $E^{release}$ is a demand reduction not explained by delivered charging. The actual/fleet request-event ratio is $\chi=N^{actual}/N^F$, where $N^F$ counts fleet-recommended request events before grid-layer adjustment and $N^{actual}$ counts final driver-layer request events. Under full compliance, drivers follow grid-adjusted recommendations; therefore $\chi$ can be below one when the grid layer defers a subset of fleet recommendations. This explains why the weekly severity-0 mean is 0.984 rather than exactly 1.000.
+
+The weekly severity sweep uses four parameterized behavior levels. At each vehicle-timestep, the driver keeps the grid-adjusted fleet recommendation with probability $p_{keep}$. If the recommendation is not kept, the vehicle follows a reserve/price-window self-service preference created from simulator state: SoC, anxiety threshold $\theta$, target deficit, deadline deficit, action availability mask, deadline laxity, and a time-of-use cheap-window indicator. The reserve threshold is $\theta$ plus the severity-specific reserve margin, with the cheap-window extra margin added during low-price windows. The noncompliant preference uses the score
+\begin{equation}
+260C_i + 130N_i + 95T_i + 55D_i + 35(1-SoC_i)-10\ell_i,
+\label{eq:severitypref}
+\end{equation}
+where $N_i$ is reserve need and $\ell_i$ is normalized laxity, and then applies the existing capacity-limited selector. The structure of this non-compliant preference is itself grounded in the behavioral literature rather than assumed: the reserve-seeking term toward a state-of-charge comfort threshold reflects documented charge and range anxiety \cite{schmalfuss2015,hardman2018,will2016}, the cheap-window term reflects the time-of-use price sensitivity observed in incentive experiments \cite{bailey2025fieldexp,delmonte2020,marxen2023flexibility}, and the deadline and laxity terms reflect the finding that drivers prioritize charging and opt out of managed control when they need their vehicle soon \cite{alexeenko2023pilot,dudek2021electricnation}. The additive-linear form of the score is not arbitrary either: it is the deterministic-utility component of a random-utility (multinomial-logit) discrete choice over charging actions, the standard model for travel and charging behavior \cite{mcfadden1974,daina2017}, so the score is a utility index over self-service options rather than an ad hoc weighting. The severity levels scale the prevalence of these documented behaviors rather than introducing a new response mechanism. Table~\ref{tab:severityparams} defines the exact severity parameters. The distinct non-compliance behavior types used in the full actor-gate matrix (self-service, limited-attention departure, price-sensitive, SoC-compliance, and SoC-queue-compliance) are operationalizations of this same preference under different combinations of the keep-probability $p_{keep}$ and the reserve and cheap-window margins, so the severity sweep and the behavior-type matrix are two views of one preference model. These labels are stress-test levels chosen to bracket the non-compliance reported in real managed-charging studies, not calibrated forecasts. Residential pilots report per-event opt-out on the order of tens of percent: OptimizEV found session-level opt-in near $60\%$ overall and falling toward $90\%$ opt-out for low-flexibility sessions \cite{alexeenko2023pilot}; the Electric Nation trial (\,$\sim$700 vehicles) documented active customer override and a majority changing their default preference \cite{dudek2021electricnation}; and incentive experiments find charge-timing reverts essentially fully once incentives are withdrawn \cite{bailey2025fieldexp,wong2023incentives,marxen2023flexibility}. Against this, severity~1 ($5\%$) is intentionally low, severity~2 ($20\%$) sits within the reported ranges, and severity~3 ($45\%$) is an upper boundary. The magnitude also matches the ACN-Data used to validate the demand model: in those 29{,}116 sessions, $\sim$33\% disconnect before the stated departure, 72\% more than 30 minutes off plan, and $\sim$10\% change the charging inputs---so $5\%$ is low relative to deviation observed directly in the validation data. This is a plausibility bracket, not a calibration: the severity parameter acts at the vehicle-timestep level whereas the field evidence reports per-session opt-out, so the two are not interchangeable. Crucially, the headline triggers already at severity~1, so it does not depend on the higher-severity settings.
+
+\begin{table}[p]
+\centering
+\caption{Behavioral severity parameters implemented in the direct multi-actor severity sweep.}
+\label{tab:severityparams}
+\tiny
+\begin{tabularx}{\textwidth}{p{0.06\textwidth}p{0.13\textwidth}p{0.19\textwidth}Yp{0.16\textwidth}p{0.16\textwidth}}
+\hline
+Severity & Label & Parameter values & Mechanism changed & Intended interpretation & Evidence boundary \\
+\hline
+0 & full\_compliance & $p_{keep}=1.00$; reserve margin 0.00; cheap-window extra 0.00 & Actual action equals grid-adjusted recommendation & Upper-bound benchmark & Not a field forecast \\
+1 & low\_deviation & $p_{keep}=0.95$; reserve margin 0.05; cheap-window extra 0.10 & 5\% of vehicle-timesteps use reserve-seeking self-service; cheap windows raise reserve threshold by 0.10 & Small noncompliance stress test & Not calibrated to observed opt-out rates \\
+2 & moderate\_deviation & $p_{keep}=0.80$; reserve margin 0.15; cheap-window extra 0.30 & 20\% recommendation deviation with stronger reserve and cheap-window self-service & Intermediate stress test & Not calibrated to field behavior \\
+3 & severe\_deviation & $p_{keep}=0.55$; reserve margin 0.25; cheap-window extra 0.60 & 45\% recommendation deviation with cheap-window request herding & Boundary stress case & Not realistic without calibration \\
+\hline
+\end{tabularx}
+\end{table}
+
+Table~\ref{tab:sevanchor} maps the three deviation levels to the per-event opt-out and override magnitudes reported in published managed-charging field studies, positioning them as literature-anchored scenario severities rather than calibrated behavioral estimates.
+
+\begin{table}[t]
+\centering
+\caption{Literature anchoring of the behavioral severity levels. Deviation magnitudes are positioned against per-event opt-out, override, and reversion evidence from managed-charging field studies; this anchors the scenarios but is not a population-specific calibration.}
+\label{tab:sevanchor}
+\begin{tabularx}{\textwidth}{p{0.10\textwidth}p{0.12\textwidth}X}
+\hline
+Severity & Deviation & Field-evidence anchor and role \\
+\hline
+1 (low-deviation) & $\sim$5\% & Below typical observed per-event opt-out ($\sim$16--40\% in residential managed-charging pilots \cite{alexeenko2023pilot,dudek2021electricnation}); an optimistic, low-friction case. \\
+2 (moderate) & $\sim$20\% & Within the observed per-event opt-out range; a central case consistent with pilot evidence \cite{alexeenko2023pilot}. \\
+3 (severe) & $\sim$45\% & Above routine observation; representative of low-flexibility sessions (opt-out toward $\sim$90\% \cite{alexeenko2023pilot}) or of near-full reversion once incentives are withdrawn \cite{bailey2025fieldexp}; an adverse boundary case. \\
+\hline
+\end{tabularx}
+\end{table}
+
+The weekly sweep uses capacities of 20\%, 35\%, and 50\%, ServiceFirst and ServiceGridWeighted policies, and NoGridIncentive and GridPeakPenalty variants. The full actor-gate matrix, including the diagnostic CostOnly and QueueAware baselines, uses five seeds; the reported severity and robustness results use a 20-seed expansion (seeds 4541--4560) of the service-oriented family, giving 240 episodes per severity level. The targeted 28-day confirmation uses a 672 h horizon, seeds 4541--4545, 35\% capacity, LeastLaxity, ServiceFirst, ServiceGridWeighted, and both grid policies.
+
+The IEEE-33 screen uses 900 weekly cases and 151,200 hourly power-flow solves. It includes 15 policies, three capacities, 10 seeds, two placements, and a 168 h horizon. The placement cases are concentrated bus 18 and distributed buses 18/22/25/30/33. Voltage results are treated as a boundary condition because EV-off baseline conditions dominate absolute voltage violation counts. The useful feeder evidence is the relative change in substation peak, line loading, and losses versus EV-off and LeastLaxity anchors.
+
+\section{Data and simulation setup}\label{sec:data}
+
+The simulator uses hourly resolution. Weekly experiments use 168 h and the targeted confirmation uses 672 h. The primary weekly evidence contains 300 explicit actor-gate rows. The targeted 28-day evidence contains 85 rows, of which 80 are explicit severity-policy-grid combinations and five are LeastLaxity anchor rows. Random seeds are fixed and reported in the reproducibility appendix. Capacity levels are 20\%, 35\%, and 50\% in weekly runs, with targeted 28-day confirmation at 35\% capacity. Here $100\%$ capacity denotes the base charger provision of the site (40 home, 5 work, 5 public slots per location group); the percentages are fractions of that base, so $35\%$ provides roughly one charger per three concurrently demanding vehicles. These are constrained but not pathological regimes. Workplace and depot charging---the setting the ACN-Data represents---is typically provisioned well below one port per vehicle, with reported installed port-to-vehicle ratios commonly in the range of roughly $1{:}5$ to $1{:}20$ because vehicles share ports across the dwell window \cite{muratori2018,powell2022}; managed charging exists precisely because demand routinely exceeds instantaneous port capacity. The $35\%$ and $20\%$ settings (about one served charger per three and per five concurrently demanding vehicles) therefore sit within the realistically constrained range that motivates managed charging, rather than representing extreme undersupply, while the $50\%$ setting is a comparatively well-provisioned case. We nonetheless report all three and note that the most dramatic results occur in the more constrained settings.
+
+The grid layer compares NoGridIncentive and GridPeakPenalty. PeakPenalty may reduce selected load-shape metrics by deferring grid-adjusted requests; those deferrals are attributed to the grid layer rather than to the fleet heuristic.
+
+\subsection{External validation of the charging-demand model}\label{sec:extval}
+
+While the behavioral severity layer is a stress-test construct, the underlying charging-demand model is not synthetic: it is calibrated to real charging data. The workplace scenario draws each session's delivered energy, dwell duration, and arrival hour from distributions fitted to the public Adaptive Charging Network (ACN) dataset \cite{acndata2019}, combining the Caltech, JPL, and Office001 sites over twelve months ($n=29{,}149$ cleaned sessions; the $29{,}116$ sessions with complete energy, dwell, and arrival features are used for the distributional comparison in Table~\ref{tab:extval}). The delivered-energy and dwell distributions are lognormal fits whose parameters are used directly by the simulator; the arrival-hour distribution is the empirical ACN connection-hour histogram.
+
+We validate the deployed simulator at the output level by extracting its generated sessions (3{,}435 sessions across eight seeds) and comparing them to the real ACN sessions with two-sample Kolmogorov--Smirnov (KS) and 1-Wasserstein distances (Table~\ref{tab:extval}, \figref{fig:extval}). Delivered energy agrees closely (KS $=0.087$; simulator mean 11.65 kWh versus 12.17 kWh observed), arrival hour agrees after aligning the dataset's UTC timestamps to local time (KS $=0.068$), and dwell duration agrees reasonably (KS $=0.176$, with matched means), the residual difference arising from the simulator's integer-hour rounding and a 14 h dwell cap. These caps, together with the 40 kWh energy clip, truncate the heaviest and longest real sessions, so the simulator slightly under-represents extreme-demand tails; this under-representation should be kept in mind when interpreting absolute pass rates, but the fact that severity-dependent failures appear even under this capped demand model indicates that the behavioral failure mechanism is not driven by unusually extreme sessions. As an independent cross-check we ran the community-standard ACN-Sim simulator \cite{lee2019acnsim} on the real Caltech network with demand drawn from the same ACN features: mean per-session energy is 12.19 kWh in ACN-Sim versus 11.65 kWh in our simulator and 12.17 kWh in the data, agreement within about 4\%. The direction of the gap is expected and explained: ACN-Sim applies no energy cap and so reproduces the data mean (12.19 vs 12.17), whereas our simulator's deliberate 40 kWh energy clip removes the heavy upper tail and pulls its mean down to 11.65; the $\sim$4\% difference is therefore a known consequence of our tail truncation rather than a modelling error, and is well within the tolerance we treat as acceptable. We adopt an explicit criterion of agreement within $\pm10\%$ on session-mean energy---conventional for demand-model validation and consistent with the documented run-to-run and configuration sensitivity of ACN-Sim itself---and the $\sim$4\% gap, attributable entirely to our deliberate 40~kWh tail cap, clears it comfortably; because the framework studies \emph{relative} degradation under behavior rather than absolute energy, a centred demand model within this band is sufficient. The grid layer is likewise externally grounded: power flow is solved with the validated open-source pandapower package \cite{thurner2018,pandapowerdoc} on the standard Baran--Wu IEEE-33 benchmark feeder \cite{baran1989}. The remaining external-validity gap is therefore not the charging-demand or grid-physics model but the behavioral-response layer, which is bracketed against field evidence (Section~\ref{sec:design}) rather than fitted to observed opt-out choices.
+
+\begin{table}[t]
+\centering
+\caption{External validation of the simulator's generated charging sessions against real ACN-Data (Caltech/JPL/Office, $n_{\mathrm{real}}=29{,}116$; $n_{\mathrm{sim}}=3{,}435$). KS is the two-sample Kolmogorov--Smirnov distance (smaller is closer).}
+\label{tab:extval}
+\begin{tabular}{lccccc}
+\hline
+Session variable & Sim mean & Real mean & KS & Wasserstein \\
+\hline
+Delivered energy (kWh) & 11.65 & 12.17 & 0.087 & 0.98 \\
+Dwell duration (h) & 6.60 & 6.68 & 0.176 & 1.20 \\
+Arrival hour (local-time aligned) & 9.76 & 10.02 & 0.068 & 0.26 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\textwidth]{figures/acn_validation_overlay_20260615.pdf}
+\caption{Generated simulator sessions (red) versus real ACN-Data (blue). Cumulative distributions of delivered energy and dwell duration and the arrival-hour histogram (local-time aligned) reproduce the central mass of the real distributions, while under-representing some extreme tails (Section~\ref{sec:extval}).}
+\label{fig:extval}
+\end{figure}
+
+Finally, we test whether the headline result depends on the specific demand distribution by redrawing the per-session energy and dwell from each \emph{independent} real ACN site---Caltech, JPL, and Office001---using that site's own fitted parameters in place of the combined fit, and re-running the severity-0 and severity-1 service-oriented check (35\% capacity, both grid policies, five seeds). The severity-1 collapse reproduces under every demand distribution: same-episode all-pass is 0.000 at severity~1 for the combined fit and for all three individual sites. Under full compliance, all-pass is 1.000 for the combined, Caltech, and JPL demand and 0.900 for the highest-energy Office001 demand, where the two residual misses are grid load-shape trips rather than service failures, consistent with the capacity-dependent grid-gate behavior reported in Section~\ref{sec:robust}. The behavioral collapse is therefore not an artifact of one demand model; it holds across three independent real charging populations. These three sites are all US workplace/campus charging contexts with similar morning-peaked arrival profiles, so this test establishes robustness to the demand \emph{magnitude} across real populations but not to qualitatively different arrival distributions; generalization to residential overnight, public fast-charge, or non-US arrival patterns is left to future work.
+
+\section{Results}\label{sec:results}
+
+\subsection{Actor gates change which policies look successful}
+
+\figref{fig:matrix} states the main result directly. Panel (A) condenses the service-oriented family (both ServiceFirst and ServiceGridWeighted, all capacities and grid policies) to a behavior-severity by actor-gate heatmap; the highlighted right-hand column is the all-pass conjunction. Panel (B) shows that the all-pass collapse is identical for both service-oriented fleet policies. The single most important feature is that the all-pass (conjunction) gate falls to near zero at severity~1, one severity step before the individual driver, fleet, and grid gates all reach zero: at severity~1 the individual gates still pass at 0.050, 0.188, and 0.321, yet almost no episode satisfies all three at once (all-pass 0.012). The full policy-by-behavior-by-grid actor-gate matrix, including the diagnostic CostOnly and QueueAware comparators, is provided as Supplementary \figref{fig:suppmatrix}; \tabref{tab:weeklymatrix} reports the aggregate per-policy pass rates. The service-oriented family passes the all-pass gate in 96.7\% of full-compliance episodes (20 seeds; see Section~\ref{sec:robust}), whereas CostOnly and QueueAware fail all three actor gates, and hence all-pass, in the weekly evidence. ServiceGridWeighted is included as a comparator robustness check, but it does not overturn the main result: the paper makes no controller-superiority claim.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\textwidth]{figures/fig2_actor_gate_acceptability_matrix.pdf}
+\caption{Multi-actor acceptability collapses one severity step before the individual gates do. (A)~Pass rate for the driver, fleet, and grid gates and their all-pass conjunction (highlighted) as a function of behavior severity, averaged over the service-oriented fleet policies, both grid policies, and all capacities. (B)~All-pass acceptability rate versus severity for ServiceFirst and ServiceGridWeighted; the two service-oriented policies are indistinguishable, and same-episode all-pass falls from 96.7\% under full compliance to 1.2\% at severity~1 even though the individual gates still pass at 0.050/0.188/0.321. Pass rates are 20-seed means across three capacities. Reading guide: read \emph{across severity} (left to right) for behavioral sensitivity, \emph{down the actor gates} (driver/fleet/grid) for which actor constraint binds, and compare the highlighted all-pass row against the individual gate rows to see the conjunction fail before any single gate does. This is a joint-threshold result under the stated normative gates, not a physical discontinuity in charging service.}
+\label{fig:matrix}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption{Weekly actor-gate pass rates by fleet policy (five-seed full matrix, including the diagnostic CostOnly and QueueAware baselines). The service-oriented rows are refined by the 20-seed expansion in Section~\ref{sec:robust}.}
+\label{tab:weeklymatrix}
+\begin{tabular}{lcccc}
+\hline
+Fleet policy & Driver pass & Fleet pass & Grid pass & All-pass \\
+\hline
+FleetCostOnly & 0.000 & 0.000 & 0.000 & 0.000 \\
+FleetQueueAware & 0.000 & 0.000 & 0.000 & 0.000 \\
+FleetServiceFirst & 0.250 & 0.300 & 0.342 & 0.250 \\
+FleetServiceGridWeighted & 0.267 & 0.292 & 0.350 & 0.250 \\
+\hline
+\end{tabular}
+\end{table}
+
+CostOnly and QueueAware have all-pass rates of 0.0\% and 0.0\%. ServiceFirst and ServiceGridWeighted both have all-pass rates of 25.0\% and 25.0\%, respectively, because their all-pass outcomes occur under full compliance and disappear under behavioral deviation. The equal aggregate all-pass rate means ServiceGridWeighted should be read as a comparator check, not a superior controller. The main result is that service-oriented dispatch can be acceptable in favorable behavior conditions, but the actor gates expose failure when behavioral pressure increases.
+
+\paragraph{Pareto efficiency does not imply same-episode acceptability.} This distinction from marginal- or scenario-averaged objective comparison is concrete, not only conceptual, and it appears already under full compliance. \figref{fig:pareto} plots each scheduling policy in the headline objective space of energy cost and trip reliability. CostOnly is \emph{Pareto-efficient}: it has the lowest energy-cost ratio ($0.955$) and the highest trip reliability ($94.5\%$) of any policy, and it \emph{dominates} the only acceptable policy, ServiceFirst, on both of these objectives (ServiceFirst: cost $1.004$, reliability $93.3\%$). A multi-objective optimizer or a Pareto-front analysis minimizing cost and maximizing reliability would therefore prefer CostOnly to ServiceFirst. Yet CostOnly's same-episode all-pass is $0.000$ versus ServiceFirst's $0.967$: in pursuing low cost it incurs a $30.9$-minute 95th-percentile wait and degrades critical-service delivery and load shape relative to the anchor, failing the driver, fleet, and grid gates that an aggregate-objective view never imposes jointly per episode. The two objective-optimal policies (CostOnly, QueueAware) both score $0\%$, while the only acceptable policy is objective-dominated---a direct demonstration that per-episode multi-actor feasibility is not recoverable from a Pareto front over averaged objectives.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.62\textwidth]{figures/fig_eq_pareto.pdf}
+\caption{Pareto efficiency does not imply same-episode acceptability (full compliance). Each scheduling policy is plotted by energy-cost ratio (lower better) and trip reliability (higher better). The cost/reliability-optimal policies CostOnly and QueueAware (red) score $0\%$ same-episode all-pass, while the only acceptable policy, ServiceFirst (green, $96.7\%$), is dominated on both headline objectives---so the conjunctive screen cannot be recovered from a Pareto front over averaged objectives.}
+\label{fig:pareto}
+\end{figure}
+
+\subsection{Low-deviation behavior collapses same-episode acceptability}
+
+\figref{fig:severity} and \tabref{tab:weeklyseverity} summarize the 20-seed severity curve (three capacities, both grid policies, service-oriented family). Full compliance passes all actor gates in 96.7\% of episodes; the residual failures are grid load-shape trips discussed in Section~\ref{sec:robust}. The severity-1 collapse is not an artifact of the strict 14-way conjunction: it is already present \emph{before} any cross-actor AND. The driver-service gate alone---a single actor---falls to 0.050, and within it the critical-requested-not-delivered criterion fails in $92\%$ of episodes (its mean rising from $0$ to $46$ dropped critical requests against a threshold of $24$); the fleet and grid gates alone fall to 0.188 and 0.321, while nine of the fourteen criteria still fail in under $2\%$ of episodes. The degradation is thus concentrated in a few criteria failing hard, not in many gates each failing slightly. The strict same-episode all-pass rate ($1.2\%$) is the aggregate consequence of these single-actor failures, read together with the graded fraction-of-criteria index, which drops to $0.79$ at severity~1 (Section~\ref{sec:robust}); we report all three so the result does not rest on the binary conjunction alone. The actual/fleet request-event ratio increases from 0.984 to 1.096 at severity 1 and to 2.164 at severity 3. The severity-0 value is below one because the denominator counts fleet recommendations before grid adjustment, while fully compliant drivers follow the grid-adjusted action stream.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/fig3_behavioral_severity_curve.pdf}
+\caption{Behavioral severity curve. The result claim is that request-event pressure rises smoothly with severity, while the same-episode all-pass conjunction fails at severity 1 under the current gates.}
+\label{fig:severity}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption{Behavioral severity results under the normative gates of Table~\ref{tab:gates} (20-seed expansion: seeds 4541--4560, capacities 20/35/50\%, both grid policies, service-oriented family; 240 episodes per severity). All-pass is a threshold-conditioned indicator; the single-actor and graded-criteria columns (and Section~\ref{sec:robust}) show the degradation is present before the strict conjunction.}
+\label{tab:weeklyseverity}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{cccccccc}
+\hline
+Severity & Driver pass & Fleet pass & Grid pass & All-pass & Actual/fleet events & Delivered ratio & Peak ratio \\
+\hline
+0 & 1.000 & 1.000 & 0.967 & 0.967 & 0.984 & 1.000 & 0.940 \\
+1 & 0.050 & 0.188 & 0.321 & 0.012 & 1.096 & 0.989 & 0.954 \\
+2 & 0.000 & 0.000 & 0.000 & 0.000 & 1.454 & 0.964 & 0.971 \\
+3 & 0.000 & 0.000 & 0.000 & 0.000 & 2.164 & 0.952 & 0.993 \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+The result indicates a joint-threshold effect under the current actor gates rather than a physical discontinuity in charging service: driver and fleet gates bind first, with grid gates increasingly binding. The severity-1 all-pass rate remains near zero across the threshold settings swept in supplementary Supplementary \figref{fig:suppthresh}---tightening the delivered-ratio gate from 0.95 to 0.99 removes 18 of the severity-0 all-pass rows and requiring 1.00 removes 60, yet the severity-1 collapse is unchanged---and Section~\ref{sec:robust} examines this robustness in detail.
+
+This same-episode framing is precisely what distinguishes the screen from scenario-averaged evaluation. If the severity-1 service-oriented metrics are instead averaged across episodes and then checked against the gates---the implicit logic of a scenario-averaged or Pareto-frontier comparison---11 of the 14 gates pass, including the delivered-energy ratio (mean 0.99), peak ratio (0.96), energy-cost ratio (0.99), and all queue metrics, and the policy would be judged broadly acceptable. Yet the same-episode all-pass rate is near zero (1.2\% in the 20-seed weekly sweep): the binding violations (critical requests, 95th-percentile wait, and load shape) fall in \emph{different} episodes, so almost no single episode satisfies all gates at once. A scenario-averaged or marginal-objective evaluation therefore misses the joint failure that the same-episode screen exposes, which is the core value the framework adds beyond average-case or Pareto analysis.
+
+The behavioral effect is request-event churn rather than higher energy demand. A persistent demanded-kWh trace over the targeted 28-day service-oriented cases balances to numerical tolerance and shows that noncompliant vehicles re-enter the request pipeline at additional timesteps, through the reserve and cheap-window self-service rule, even when target- and deadline-deficit demand is unchanged or lower (Eq.~\eqref{eq:ledger}). Aggregate request-event counts rise to 2.349$\times$ severity~0 at severity~3 while simulator demanded kWh falls to 0.917$\times$; across seeds the severity-3 event ratios range from 2.306 to 2.401 and the demanded-kWh ratios from 0.908 to 0.923. Supplementary Fig.~\ref{fig:suppcons} breaks the request-event ratio down by behavior type---price-sensitive and SoC-compliance behaviors churn the most---and reports the accompanying request-ID conservation audit, whose maximum count residual is exactly zero, confirming that no request identifiers are created or lost across the driver, fleet, and grid layers. The mechanism is therefore increased request-event pressure and service-accounting stress, which break driver and fleet gates under the specified thresholds, not energy-demand amplification. We note that this churn-versus-amplification decomposition is mediated by the simulator's ledger accounting (Eq.~\eqref{eq:ledger}), which separates delivered energy, remaining demand, and a release term; a simulator with a different demand-accounting structure could partition the same behavior differently, so the distinction should be read as a property of this request-pipeline model rather than a universal claim. What is architecture-independent is the qualitative finding that the failure is driven by the timing and frequency of service requests rather than by total energy delivered, which falls slightly.
+
+\paragraph{Targeted 28-day confirmation.} \tabref{tab:target28} reports the targeted 28-day confirmation at 35\% capacity (a separate five-seed, 672 h run). The longer horizon is a targeted check, not a full-capacity confirmation. In this five-seed 35\% capacity cell, all-pass falls from 100.0\% at severity 0 to 0.0\% at severity 1; the slightly higher severity-0 value than the 20-seed weekly mean reflects the smaller seed set and the single capacity. Request-event pressure rises smoothly from 0.995 at severity 0 to 2.566 at severity 3.
+
+Two of the fourteen gates use absolute event-count thresholds (the critical and total requested-not-delivered deltas), which are extensive and therefore grow with horizon; scoring the 672 h run against the per-week thresholds makes those two gates effectively four times stricter than in the weekly screen, so the 28-day result above is best read as a conservative longer-horizon stress check. To separate the behavioral effect from this horizon-scaling, we re-scored the same 28-day episodes with horizon-fair count thresholds, scaling the two count gates by $672/168=4$ (critical requested-not-delivered delta from $24$ to $96$, requested-not-delivered delta from $117$ to $468$) while leaving the twelve intensive ratio, percentile, and load-shape gates unchanged. The severity-1 collapse is unchanged: all-pass remains $1.000$ at severity~0 and $0.000$ at severity~1 under the horizon-fair thresholds, so the 28-day failure is not an artifact of applying weekly count thresholds over the longer horizon. (A recomputation of the gates from the recorded per-episode metrics reproduces the engine's original all-pass labels exactly.)
+
+\begin{table}[t]
+\centering
+\caption{Targeted 28-day behavioral severity confirmation.}
+\label{tab:target28}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{cccccccc}
+\hline
+Severity & Driver pass & Fleet pass & Grid pass & All-pass & Actual/fleet events & Delivered ratio & Peak ratio \\
+\hline
+0 & 1.000 & 1.000 & 1.000 & 1.000 & 0.995 & 1.000 & 0.930 \\
+1 & 0.000 & 0.000 & 0.000 & 0.000 & 1.147 & 0.985 & 0.944 \\
+2 & 0.000 & 0.000 & 0.000 & 0.000 & 1.625 & 0.954 & 0.956 \\
+3 & 0.000 & 0.000 & 0.000 & 0.000 & 2.566 & 0.936 & 0.979 \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+The 28-day confirmation is targeted rather than exhaustive because it uses 35\% capacity only. It is best interpreted as a longer-horizon check of one binding capacity cell, with capacity generalization left to future expanded runs.
+
+\subsection{Where it fails, which gate binds, and which behavior drives it}\label{sec:diagnostic}
+
+The diagnostic value of the framework is not the pooled $1.2\%$ figure but the disaggregated answer to \emph{where} feasibility fails, \emph{which} constraint binds first, and \emph{which} behavior is the binding cause. \figref{fig:eqdiag} reports all three, and each carries a different operational implication.
+
+\paragraph{Where: the collapse is uniform across capacity, so it is not an infrastructure problem.} Disaggregating all-pass by charger capacity (\figref{fig:eqdiag}A) shows that severity-1 feasibility is near zero at \emph{every} capacity---$0.038$, $0.000$, and $0.000$ at $20\%$, $35\%$, and $50\%$---and that at full compliance higher capacity is if anything slightly \emph{worse} ($0.988\to0.938$), because more simultaneous charging worsens the grid load-shape sub-gate. Adding chargers therefore does not recover feasibility; it raises the full-compliance plateau marginally and lowers it at the top end, but the severity-1 cliff is present regardless. This is the first concrete deployment message: where the binding constraint is compliance, infrastructure expansion is the wrong lever.
+
+\paragraph{Which gate: the driver-service constraint binds first.} Across capacities at severity~1 (\figref{fig:eqdiag}B), the driver-service gate is the lowest-passing actor constraint---$0.15$ at $20\%$ and $0.00$ at $35\%$ and $50\%$---ahead of fleet ($0.11$--$0.25$) and grid ($0.15$--$0.66$). The grid gate is actually the \emph{healthiest} at low capacity ($0.66$ at $20\%$) and degrades as capacity rises, the opposite of the driver gate. So the leading edge of infeasibility is the driver's own service guarantee: behavioral deviation first breaks the constraint of the very actor whose behavior it is.
+
+\paragraph{Which behavior: self-service request churn, not inattention.} Decomposing by the five non-compliance behavior types under full-strength deviation (\figref{fig:eqdiag}C) localizes the cause. The mild \emph{inattention} behaviors, which merely drop occasional requests (request-churn ratio $\approx0.95$), only partially degrade feasibility ($0.83$ at $2.5\%$ and $0.53$ at $5\%$ inattention) and bind the grid gate. By contrast, the \emph{self-service} behaviors---urgency, reserve-seeking, SoC-anxiety, price-sensitivity, and SoC-plus-queue---collapse feasibility to $0.00$ and bind the driver gate, and they do so with request-churn ratios of $1.3$ to $9.5\times$: a price-sensitive or SoC-anxious driver re-enters the request pipeline many times more often than recommended. The binding cause is therefore not how \emph{often} drivers deviate but \emph{what} they do when they deviate---self-serving reserve and price-driven charging that multiplies request events---and the operational implication is specific: an effective intervention must suppress self-service churn (e.g.\ a compliance incentive aimed at reserve- and price-driven overriding), whereas reducing benign inattention would not recover feasibility.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.99\textwidth]{figures/fig_eq_diagnostic.pdf}
+\caption{Disaggregated diagnosis. (A)~All-pass feasibility by charger capacity and grid policy at full compliance (green) and severity~1 (red): the collapse is uniform across capacity, so infrastructure is not the lever. (B)~Actor-gate pass rates by capacity at severity~1: the driver-service gate binds first (lowest-passing) across capacities, while the grid gate is healthiest at low capacity. (C)~All-pass (bars) and request-event churn ratio (line) by behavior type: self-service behaviors (high churn, $1.3$--$9.5\times$) collapse feasibility and bind the driver gate, whereas mild inattention (low churn) does not.}
+\label{fig:eqdiag}
+\end{figure}
+
+\subsection{The collapse is multi-actor, broad-based, and weight-independent}\label{sec:robust}
+
+A legitimate concern is that the same-episode all-pass collapse could be an artifact of combining many binary criteria with a strict logical AND: with enough fragile thresholds, a conjunction will fail under almost any perturbation. We therefore expand the seed count and decompose the collapse and test it under alternative aggregation logics, using a 20-seed per-episode dataset for the service-oriented family (240 episodes per severity level: seeds 4541--4560, three capacities, two grid policies, two service fleet policies).
+
+The expansion from five to twenty seeds also refines the headline. Under full compliance, all-pass is 0.967 rather than exactly 1.000: the grid load-shape gate trips on a minority of seeds, and severity-0 all-pass declines with capacity (0.988, 0.975, 0.938 at 20\%, 35\%, 50\%), with seed-level standard deviation rising from 0.056 to 0.160 as capacity increases (Table~\ref{tab:seedcap}). Full compliance is therefore not a guaranteed pass, especially at higher capacity, which is itself a multi-actor finding the five-seed base masked. At severity~1, all-pass is 0.012 overall (a small residual at 20\% capacity only), so the collapse from full compliance is confirmed with a non-overlapping bootstrap interval: 0.967 with 95\% interval $[0.942, 0.988]$ at severity~0 versus 0.012 with interval $[0.000, 0.029]$ at severity~1. All bootstrap intervals resample the \emph{episode-level} all-pass indicators (10{,}000 non-stratified resamples of the per-episode outcomes within each severity cell). The episode is the natural resampling unit because each episode is an independent seed--capacity--policy draw and within-episode temporal autocorrelation is already collapsed into the single per-episode all-pass indicator; a timestep-level block bootstrap is therefore unnecessary, and resampling episodes does not understate the variance of an episode-level rate.
+
+First, we ask which of the 14 sub-criteria in Table~\ref{tab:gates} actually bind. \figref{fig:robust}(A) reports the fraction of episodes that fail each criterion at severity~1. The failure is broad-based rather than dominated by a single tight gate: four distinct criteria spanning all three actors cross their thresholds, namely the critical requested-not-delivered delta (driver, 0.92), the 95th-percentile wait delta (fleet, 0.81), the squared-load-proxy ratio (grid, 0.55), and the ramp ratio (grid, 0.46). Notably, the binding criteria are service-completion, waiting, and load-shape metrics, each from a different actor; the deliberately tight reliability-delta gate fails in only 0.13 of episodes and is not the driver of the result. The single most-affected actor is the driver, whose gate passes in only 0.050 of severity-1 episodes, but the fleet and grid gates also bind substantially.
+
+Second, we recompute acceptability under softer aggregation logics (\figref{fig:robust}(B)). The degradation is visible even without the strict three-actor AND: the actor-level driver gate alone falls to 0.050, and requiring only one of the three actor gates to pass still falls to 0.433 at severity~1. The strict conjunction does, however, dramatize the effect. The graded fraction of the 14 criteria passed declines monotonically from 1.00 at severity~0 to 0.79, 0.61, and 0.56 at severities 1--3; that is, on average about 79\% of criteria still pass at severity~1 even though almost no episode passes all of them simultaneously. We therefore report both the strict all-pass indicator and this graded index, and we do not interpret the binary near-100\%-to-near-0\% transition as a physical cliff.
+
+\begin{table}[t]
+\centering
+\caption{Seed-resolved all-pass acceptability by behavior severity and capacity (20 seeds, both grid policies, service-oriented family). Each cell aggregates 80 episodes; the standard deviation is computed across the 20 per-seed all-pass means. Severity-0 acceptability declines and becomes more seed-variable as capacity rises; the severity-1 collapse holds across all capacities.}
+\label{tab:seedcap}
+\begin{tabular}{ccccc}
+\hline
+Severity & Capacity & All-pass mean & Seed std & Seed [min, max] \\
+\hline
+0 & 20\% & 0.988 & 0.056 & [0.75, 1.00] \\
+0 & 35\% & 0.975 & 0.112 & [0.50, 1.00] \\
+0 & 50\% & 0.938 & 0.160 & [0.50, 1.00] \\
+1 & 20\% & 0.037 & 0.092 & [0.00, 0.25] \\
+1 & 35\% & 0.000 & 0.000 & [0.00, 0.00] \\
+1 & 50\% & 0.000 & 0.000 & [0.00, 0.00] \\
+\hline
+\end{tabular}
+\end{table}
+
+Third, we test a robustness envelope over the acceptability definition itself, varying the cut-points and the aggregation rule rather than holding them fixed. In a global sweep we scale every gate margin by a common slack factor (Table~\ref{tab:envelope}). Under full compliance, all-pass is 0.967 at the nominal definition, rises toward 1.000 as the gates are loosened, and falls to 0.912 when every gate is tightened to half its margin. At severity~1, strict all-pass stays near zero (0.012 at the nominal definition) at the nominal and all tighter definitions and recovers only gradually as the entire gate system is loosened, reaching 0.071 at a $1.5\times$ slack and 0.458 only at a $2\times$ slack; the graded fraction-of-criteria index and the ``at least one actor'' rate move smoothly with the slack factor. In a complementary one-at-a-time sweep, loosening any single criterion to three times its nominal margin while holding the others fixed recovers severity-1 strict all-pass to at most 0.054, i.e. no individual cut-point is responsible for the result. To make the normative-robustness margin explicit: recovering a \emph{majority} ($>50\%$) of severity-1 all-pass requires loosening \emph{every} gate simultaneously by more than about $2\times$ (the $2\times$ envelope reaches $0.46$ and only the $3\times$ envelope clears $0.5$), whereas no single- or few-gate relaxation within the tested range exceeds $0.054$---so the collapse cannot be undone by re-tuning one or two thresholds. The qualitative conclusion---that within this simulator and gate family, behavioral deviation drives the modelled system out of same-episode multi-actor acceptability while graded acceptability degrades smoothly---therefore holds across a wide band of plausible acceptability definitions and is not rescued by relaxing any one threshold; only loosening the entire gate system by about twofold or more materially changes it. This is a statement about the modelled response under the stated gate family, not a calibrated claim that any specific real-world deviation level is unacceptable.
+
+Because a global slack sweep could in principle be passed by a policy with strict cut-points on inert gates and one loose cut-point on the binding gate, we also defend the two \emph{load-bearing} gates individually. At severity~1 the collapse is carried by the critical-requested-not-delivered criterion (driver gate, failing in $92\%$ of episodes) and the 95th-percentile wait criterion (fleet gate, $81\%$); the other twelve criteria fail in under $2\%$ of episodes and are not load-bearing. The thresholds for these two are operationally grounded rather than arbitrary. A critical request is a trip-readiness charge that a vehicle needs to complete its assigned duty, so the cut-point of at most $24$ critical-not-delivered events per $168$-h week (about $3.4$ per day) is already a generous tolerance for a fleet; the severity-1 mean of $46$ exceeds it roughly twofold, so the failure is not marginal to the threshold. A 95th-percentile wait of $30$ minutes is a conventional charging service-level target, above which fleet turnaround and driver experience degrade materially; the severity-1 mean of $49$ minutes again exceeds it by about $1.6\times$. Both binding failures therefore overshoot defensible cut-points by $1.6$--$2\times$, and the one-at-a-time sweep confirms that loosening either of these to three times its margin still recovers severity-1 all-pass to at most $0.054$. The collapse thus rests on two gates whose thresholds are independently justifiable and whose violations are large, not on a fragile choice of cut-point.
+
+Fourth, we test whether the collapse depends on deviation being uniformly random across drivers. Field evidence indicates that opt-out concentrates in low-flexibility, low-slack sessions \cite{alexeenko2023pilot}, so we re-ran severity~1 with the same 5\% deviation rate but concentrated in low-laxity vehicles, and as a contrast in high-laxity vehicles, normalizing each so the population-mean deviation stays at 5\%. Same-episode all-pass remains 0.000 under the realistic low-slack-concentrated structure, identical to the uniform baseline; the driver-service gate binds in every case because mild deviation breaks per-vehicle service guarantees wherever it falls. Deviation concentrated instead in already-flexible high-slack vehicles leaves the fleet and grid gates much healthier (0.60 and 0.50 versus 0.05), consistent with flexible-vehicle deviation being less operationally damaging, but all-pass still collapses to 0.000. The result is therefore not an artifact of uniformly random deviation; it reflects how even mild noncompliance interacts with the per-vehicle service gates, and concentrating the deviation in the realistically most-affected drivers does not rescue acceptability.
+
+Fifth, we test sensitivity to the \emph{functional form} of the non-compliant self-service preference (Eq.~\eqref{eq:severitypref}) itself, not just to deviation prevalence and placement. Holding the severity-1 deviation rate fixed at $5\%$ (low-slack-structured), we re-ran the screen under eight preference-coefficient variants spanning a reasonable family: the base weights; all weights set equal (removing the priority ordering entirely); the ordering reversed; the reserve-seeking term dropped; a state-of-charge-dominated weighting; and the base weights scaled by $\pm50\%$. Same-episode all-pass is $0.000$ at severity~1 for \emph{every} variant (35\% capacity, both grid policies). The qualitative result is thus insensitive to the preference-coefficient choice: within this family of non-compliant preferences, the collapse is driven by the prevalence and placement of deviation, not by a finely tuned non-compliant utility model---consistent with the binding driver-service gate failing simply because deviating vehicles depart from the recommended critical-service schedule, largely independent of what they self-serve instead. This insensitivity also justifies the single aggregate deviation index $d$ used in the congestion game of Section~\ref{sec:game}: because the screening outcome is governed by the prevalence and slack-placement of deviation and is insensitive to the specific non-compliant preference form---across both the five behavior types of Section~\ref{sec:design} and these eight coefficient variants---collapsing the behavior types to a scalar $d$ preserves the structure relevant to the screen. A multi-type game with a per-type compliance response would add state and action complexity without changing the screening conclusion, since every type that deviates breaks the same per-vehicle service guarantees; we therefore keep the scalar-$d$ game and treat multi-type strategic heterogeneity as a refinement for future incentive design rather than a change to the diagnosis.
+
+Sixth, we test whether the compliance threshold is a property of the LeastLaxity scheduler specifically or of behavioral non-compliance under any competent deadline-driven rule. We re-ran the severity sweep with Earliest-Deadline-First (EDF)---the canonical real-time deadline rule and the family the ACN adaptive scheduler belongs to \cite{lee2021adaptive}---in place of the LeastLaxity-based fleet recommendation, applying the same driver layer and gates (35\% capacity, both grid policies, five seeds). EDF exhibits the same deviation-driven collapse: its feasibility falls from $0.20$ at full compliance to $0.00$ by $2.5\%$ deviation, the same threshold as the LeastLaxity-based family. The two schedulers separate the two effects cleanly: scheduler quality sets the \emph{full-compliance feasibility level} (LeastLaxity-anchored ServiceFirst reaches $0.967$; the weaker EDF only $0.20$, because EDF is a poorer fit for this multi-actor problem and is already strained against the anchor at full compliance), while behavioral compliance sets the \emph{threshold} below which feasibility collapses for either. This is the central point in scheduler terms: a better scheduler raises the height of the full-compliance plateau but does not move the compliance cliff, so beyond a competent scheduler the binding deployment constraint is compliance, not scheduling.
+
+\begin{table}[t]
+\centering
+\caption{Robustness envelope: acceptability under a global threshold-slack factor (all 14 gate margins scaled simultaneously; slack $>1$ loosens; 20-seed service-oriented family). Full compliance stays near-universally acceptable (0.91--1.00); the severity-1 collapse persists until the whole gate system is loosened two- to threefold.}
+\label{tab:envelope}
+\begin{tabular}{ccccc}
+\hline
+Slack & All-pass sev 0 & All-pass sev 1 & Graded frac.\ sev 1 & $\geq$1 actor sev 1 \\
+\hline
+0.50 (tighter) & 0.912 & 0.000 & 0.725 & 0.246 \\
+0.75 & 0.929 & 0.000 & 0.766 & 0.354 \\
+1.00 (nominal) & 0.967 & 0.012 & 0.793 & 0.433 \\
+1.25 & 0.992 & 0.046 & 0.827 & 0.567 \\
+1.50 & 0.996 & 0.071 & 0.860 & 0.700 \\
+2.00 & 0.996 & 0.458 & 0.947 & 1.000 \\
+3.00 (looser) & 1.000 & 0.883 & 0.992 & 1.000 \\
+\hline
+\end{tabular}
+\end{table}
+
+The conclusion is that, under the scenario-bracketed behavioral layer, deviation degrades acceptability across multiple distinct criteria spanning all three actors at the same time. The strict same-episode conjunction makes this visible as an all-pass collapse, while the graded index shows the same monotonic degradation more conservatively. The effect is therefore not an artifact of one intentionally tight threshold, nor purely of the AND aggregation, and it is stable across a wide envelope of threshold and aggregation choices, although the magnitude of the binary collapse should be read together with the graded index.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\textwidth]{figures/fig_robustness_acceptability.pdf}
+\caption{Robustness of the acceptability definition. (A)~Fraction of severity-1 episodes failing each binding sub-criterion, coloured by actor (driver, fleet, grid); the collapse is driven by four distinct criteria across all three actors, not a single tight gate. (B)~Acceptability rate under alternative aggregation logics and the graded fraction-of-criteria index; the degradation survives softer aggregation, while the graded index (about 0.79 of criteria still passing at severity~1) avoids overstating a binary cliff. Twenty-seed service-oriented family.}
+\label{fig:robust}
+\end{figure}
+
+\paragraph{Failure-pattern taxonomy.} \figref{fig:failure} shows that the dominant failure pattern is not a single isolated gate. Across the weekly matrix, the categories sum to 300 rows: driver-fleet-grid failure (209 rows), all-pass (60 rows), driver-fleet failure (19 rows), driver-grid failure (7 rows), driver-only failure (3 rows), fleet-only failure (1 row), and grid-only failure (1 row). This pattern matters because it indicates that many policies are not failing on a narrow grid metric alone; they are failing as deployment policies across actors.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/fig4_failure_pattern_taxonomy.pdf}
+\caption{Failure-pattern taxonomy. The result claim is that most unacceptable cases fail multiple actor gates rather than a single isolated grid or service metric.}
+\label{fig:failure}
+\end{figure}
+
+Empirically, the result does not depend on the fixed integer weights of the ServiceGridWeighted comparator. A six-variant coefficient ablation---base weights; normalized ($\div100$); equal service weights; no grid penalty; and base $\pm25\%$, at 35\% capacity for severities~0 and~1---leaves the screening conclusion unchanged: all-pass is 1.00 under full compliance and 0.00 at severity~1 for every variant, and the normalized variant is decision-identical to the base weights. This is the expected consequence of the eligibility-based dominance established in Section~\ref{sec:formulation} (per-variant table and full coefficients in Supplementary Material~\ref{sec:supp}). ServiceGridWeighted thus confirms that the behavioral collapse is not an artifact of the ServiceFirst baseline or of arbitrary weights, and its aggregate all-pass rate (25.0\%) equals that of ServiceFirst, so it is not a superior controller.
+
+\subsection{Grid-side control trades off peaks but does not rescue acceptability}
+
+Having established that actor-gate failure is driven mainly by behavioral request churn, we next ask whether the resulting charging profiles also create interpretable distribution-system stress signals. \figref{fig:gridtradeoff} compares NoGridIncentive and GridPeakPenalty. In the targeted 28-day confirmation, GridPeakPenalty reduces the mean peak ratio at severity~1 relative to NoGridIncentive in several service-oriented groups, but all-pass remains 0.0\%. This means the grid layer can improve selected grid stress metrics without correcting driver and fleet acceptability failures. The result supports a trade-off claim, not a rescue claim.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/fig5_grid_policy_tradeoff.pdf}
+\caption{Grid-policy trade-off. PeakPenalty lowers selected peak metrics but does not rescue all-pass acceptability after driver and fleet gates fail; the result is a bounded grid trade-off, not a rescue mechanism.}
+\label{fig:gridtradeoff}
+\end{figure}
+
+\paragraph{IEEE-33 feeder stress screen.} As an external grid-side lens---not part of the all-pass gate definition and not a site-specific interconnection study---we map each policy's charging profile onto the Baran--Wu IEEE-33 benchmark feeder \cite{baran1989,thurner2018,pandapowerdoc}. Across 900 feeder cases the interpretable policy signals are EV-off-relative deltas: a mean substation-peak delta of $173.8$ kW (range $87.3$--$310.9$), a mean maximum line-loading delta of $3.59$ percentage points, and a mean losses delta of $1718.8$ kWh/week. Voltage-violation timestep deltas are exactly zero in all $900$ cases, so the binary voltage metric is base-load-determined and insensitive to EV-policy differences---a non-binding feasibility check rather than evidence of voltage feasibility, not to be generalized to weaker feeders or higher penetration (Supplementary Fig.~\ref{fig:ieee33}). The grid acceptability gate itself is governed instead by the load-shape sub-gate: the squared-load and ramp criteria fail in $0.55$ and $0.46$ of severity-1 episodes, whereas the peak-ratio criterion rarely binds ($0.01$) and the voltage screen never binds, so the grid actor is exercised through load-shape stress, not the voltage screen.
+
+
+\section{Mechanism analysis: a congestion-game model of compliance and incentives}\label{sec:game}
+
+The diagnostic result---that small behavioral deviation drives same-episode all-pass
+acceptability to near zero---raises the constructive question this section answers:
+\emph{is there an operating point at which drivers, fleet, and grid are simultaneously
+acceptable, and what does it cost to reach it?} We show that (i) a calibrated
+\emph{congestion-game} representation can place the low-deviation collapse at the
+no-incentive compliance equilibrium, rather than treating it only as an exogenous stress
+setting; (ii) a cooperative bargaining target provides a transparent reference point for
+joint driver, fleet, and grid utility; and (iii) a bounded Pigouvian-style compliance
+incentive, chosen by the operator as a Stackelberg leader, moves the induced equilibrium
+into the jointly acceptable region within the calibrated model.
+
+We are explicit about what this layer does and does not contribute. We do \emph{not} use
+the congestion game to re-establish the simulator's collapse---that the same-episode
+all-pass falls under low deviation is the empirical result of
+Section~\ref{sec:results}, and once the game's no-incentive equilibrium is calibrated to
+the $5\%$ deviation level, ``the collapse is an equilibrium that an incentive removes'' is
+largely entailed by the deviation--acceptability cliff already shown there. What the game
+layer adds is three things the simulator alone does not provide. First, an
+\emph{equilibrium explanation}: it endogenizes the otherwise-assumed deviation level,
+accounting for why deviation concentrates near $5\%$ as the unique, stable Nash
+equilibrium of a free-riding congestion game rather than as an exogenous stress setting.
+Second, a \emph{mechanism-design characterization} of the corrective lever: it identifies
+the incentive as a Pigouvian-style internalization of the congestion externality---the
+right \emph{kind} of intervention, not merely ``less deviation helps.'' Third, a
+\emph{welfare layer} the feasibility screen lacks: a Nash-bargaining target that balances
+the three actors and a price of anarchy that quantifies the efficiency loss from
+decentralized free riding. The section is therefore a complementary explanatory and
+welfare layer, not an independent re-derivation of the collapse.
+
+This layer is deliberately subordinate to the screening result of
+Section~\ref{sec:results} and is interpretive, not empirical. The game is \emph{not}
+estimated from observed strategic driver choices; its utility functions are normalised and
+normative; and its incentive parameter is in normalised utility units, not a claimed
+monetary tariff. It is a mechanism-consistent overlay that asks whether the observed
+low-deviation collapse can be \emph{interpreted} as an uncoordinated compliance
+equilibrium and whether a transparent incentive could move that equilibrium back into the
+acceptable region; the recovery it reports is a modelled result, not a field-tested policy.
+The incentive-recovery result separates into two mappings that we keep distinct. The
+\emph{physical} mapping from aggregate deviation $d$ to acceptability is
+simulator-validated: every all-pass$(d)$ value is a real simulator output at that
+deviation level. The \emph{behavioral} mapping from an incentive $\sigma$ to a lower
+equilibrium deviation is a calibrated model assumption, not an empirically validated
+response. We therefore claim only the conditional---\emph{if} an incentive reduces
+deviation to $d$, the simulator shows acceptability recovers accordingly---and treat
+whether a given incentive actually elicits that compliance as a design hypothesis for
+field validation, not an empirically demonstrated mechanism.
+
+\subsection{Driver compliance as an aggregative congestion game}
+
+A coordinated charging schedule---drivers accepting the fleet's recommended deferrals
+rather than self-serving---produces a shared public good: an uncongested charging queue
+and a healthy feeder load shape. The marginal private benefit of complying \emph{falls}
+as more drivers comply, because a healthy system can absorb one additional defection:
+each driver is then tempted to free-ride by charging immediately or reserve-seeking. Let
+$\rho\in[0,1]$ be the aggregate compliance rate and let driver $i$ comply iff
+\begin{equation}
+\sigma + \beta\,(1-\rho) \;\ge\; \kappa_i,
+\label{eq:driverrule}
+\end{equation}
+where $\sigma\ge 0$ is an operator-paid compliance incentive, $\beta>0$ scales the
+congestion externality $(1-\rho)$ that makes complying privately worthwhile, and
+$\kappa_i$ is driver $i$'s heterogeneous private compliance cost (higher for low-slack,
+inflexible drivers, who deviate first). With $\kappa_i\sim\mathrm{Logistic}(\mu,s)$ the
+compliance rate is the fixed point of the aggregative best-response map
+\begin{equation}
+\rho \;=\; \Phi(\rho;\sigma) \;=\; F_\kappa\!\big(\sigma + \beta(1-\rho)\big),
+\qquad F_\kappa(x)=\big[1+e^{-(x-\mu)/s}\big]^{-1}.
+\label{eq:fixedpoint}
+\end{equation}
+Because $\Phi$ is strictly decreasing in $\rho$, the map $g(\rho)=\Phi(\rho)-\rho$ is
+strictly decreasing and crosses zero exactly once, so the fixed point is \emph{unique}
+regardless of parameters, removing any basin or equilibrium-selection ambiguity.
+Best-response \emph{stability} is a separate condition: it requires
+$|\Phi'|=\beta\,f_\kappa(\cdot)<1$, where $f_\kappa$ is the logistic density, i.e.\ a
+restriction on $\beta/s$. This holds throughout our calibrated regime ($|\Phi'|=0.12$ at
+the nominal calibration) and fails only under simultaneously high externality and very low
+cost heterogeneity ($\beta=4$, $s=0.25$), where the equilibrium is still unique
+(Supplementary Fig.~\ref{fig:eqsens}). We calibrate $\mu$ so that the
+no-incentive equilibrium reproduces the ACN-anchored deviation magnitude
+($\rho^\star(\sigma{=}0)=0.95$, i.e.\ $d^\star=1-\rho^\star=0.05$); $\beta$ and $s$ set
+the externality strength and the incentive responsiveness $\mathrm{d}\rho^\star/\mathrm{d}\sigma$,
+with the slack-dependence of $\kappa_i$ taken from the OptimizEV opt-in-versus-slack
+evidence \cite{alexeenko2023pilot}. Concretely, we fit the slack-gradient of compliance to
+the OptimizEV opt-in curve (anchored at roughly $10\%$ opt-in at low slack rising to $80\%$
+at high slack) while setting the level from the ACN deviation magnitude; because program
+opt-in and per-decision compliance are different quantities, only the slack-gradient is
+transferred, not the absolute level (Supplementary Fig.~\ref{fig:eqcalib}). Re-deriving the
+equilibrium under this literature-informed slack-resolved compliance model leaves the
+conclusions unchanged---the selfish equilibrium remains at $d^\star=0.05$ with all-pass
+zero, and a bounded incentive ($\sigma^\star=0.25$ at $35\%$ capacity) restores modelled all-pass.
+We treat this as a sensitivity analysis on the compliance structure, not as behavioral
+validation, since program opt-in and per-decision compliance are distinct quantities. This is a soft
+behavioral calibration---it fixes the deviation \emph{magnitude} and its slack
+\emph{structure} from data---not a mechanism fitted to logged opt-out decisions, and we
+treat it as such.
+
+\subsection{Actor utilities, the social optimum, and the bargaining target}
+
+For each operating point (parameterised by the realised deviation $d$ and the grid
+policy) we read three normalised utilities in $[0,1]$ from the simulator: a driver
+utility $U_D$ (service reliability and delivered-energy ratio), a fleet utility $U_F$,
+and a grid utility $U_G$ (low load-shape stress: squared-load, ramp, and peak-to-average).
+We model $U_F$ as a fleet \emph{service/revenue} proxy (critical-service completion and
+low waiting) rather than an accounting profit, because for a fleet operator the economic
+exposure to driver deviation runs through vehicle availability and missed service---a
+fleet that cannot complete trips loses revenue---whereas the energy and demand-charge
+\emph{cost} channel is captured separately by the fleet cost gate (Table~\ref{tab:gates}).
+We test the alternative profit-weighted fleet objective in Supplementary Material~\ref{sec:supp} and explain why it is less
+informative here. Utilitarian welfare is $W=\sum_{k}w_k U_k$. The cooperative target is the \emph{Nash bargaining solution}
+\begin{equation}
+\max_{\text{feasible }(U_D,U_F,U_G)} \;\prod_{k\in\{D,F,G\}} (U_k-d_k)_+,
+\label{eq:nbs}
+\end{equation}
+with disagreement point $d_k$ equal to the selfish-equilibrium utilities. The NBS is the
+unique Pareto-efficient point of this product and a standard cooperative reference that
+balances gains across the three actors relative to the disagreement point (its fairness
+properties hold under the usual bargaining axioms, which we adopt but do not re-derive);
+it is the reference operating point the incentive targets.
+
+\subsection{Stackelberg implementation and the price of anarchy}
+
+The operator is a Stackelberg leader choosing two levers---the compliance incentive
+$\sigma$ and the grid policy (NoGridIncentive vs.\ GridPeakPenalty)---anticipating the
+drivers' equilibrium response \eqref{eq:fixedpoint}. The incentive is Pigouvian-style: it
+internalises the deviation externality, raising $\rho^\star(\sigma)$ and lowering the
+equilibrium deviation $d^\star(\sigma)$. This corrective logic is broadly structural rather than
+specific to our exact functional forms: under the stated monotonicity and feasibility
+conditions, a congestion externality that makes the private return to deviating rise with
+others' compliance yields a Nash equilibrium with inefficiently high deviation, which a
+compliance-restoring transfer moves toward the social optimum. We do not claim this holds
+for every externality form. Because all-pass acceptability is monotone in $d^\star$, the
+minimum incentive that restores modelled all-pass acceptability is found by bisection. We report the price
+of anarchy $\mathrm{PoA}=W_{\mathrm{NBS}}/W_{\mathrm{selfish}}$, the welfare lost to
+uncoordinated behaviour and indexed as recoverable under the modelled mechanism. Because the actor utilities are
+min--max normalised within each capacity, the price of anarchy is a \emph{relative}
+welfare index whose magnitude depends on the normalisation and on the within-actor
+weighting of sub-metrics; it should not be read as an absolute economic surplus. The
+directionally robust statement is weaker and we hold to it: at the bargaining point the
+driver utility improves on every sub-metric, the fleet improves on its binding sub-metric
+(waiting) while service completion is essentially unchanged, and the grid improves on its
+binding load-shape sub-metrics (squared-load and ramp) while peak-to-average moves
+marginally the other way---so the bargaining point dominates the selfish equilibrium on
+the binding criteria, with a price of anarchy above one across the tested game and
+welfare-weight configurations, even though the precise figure is normalisation-dependent.
+As a direct check, re-computing the price of anarchy under an alternative normalisation
+(each utility expressed as a ratio to its full-compliance value, rather than min--max
+within capacity) leaves it essentially unchanged---$1.50$, $1.50$, and $1.56$ at $20\%$,
+$35\%$, and $50\%$ capacity, versus $1.48$, $1.46$, and $1.48$ under the min--max
+normalisation---so the magnitude near $1.5$ is robust to this normalisation choice, while
+remaining a relative rather than an absolute-surplus index.
+
+% ----------------------------------------------------------------------------
+% RESULTS subsection (numbers filled from equilibrium_results_real_20260616.json)
+% ----------------------------------------------------------------------------
+\subsection{Results: the collapse is an equilibrium, and a bounded incentive removes it}
+\label{sec:game-results}
+
+\paragraph{The uncoordinated equilibrium coincides with the collapse.} We construct the
+congestion-game representation so that its no-incentive equilibrium is calibrated to the
+ACN-anchored deviation magnitude: the game has a unique, stable selfish equilibrium at
+compliance $\rho^\star=0.95$ (deviation $d^\star=0.05$), with best-response slope
+$|\Phi'|=0.12<1$ (\figref{fig:eqbr}). At this equilibrium same-episode all-pass
+acceptability is $0.000$, so under this representation the severity-1 collapse of
+Section~\ref{sec:results} corresponds to the uncoordinated compliance equilibrium rather
+than to a purely exogenous stress setting---a reframing, not an independent discovery that
+the collapse ``is'' an equilibrium. The $0.000$ value here refers to the game-evaluated
+operating points (the five-seed, per-capacity response-surface interpolation, including
+the binding $35\%$ and $50\%$ capacity cells); it should not be confused with the pooled
+20-seed weekly severity table (Section~\ref{sec:results}), where severity~1 retains a
+small residual all-pass rate of $0.012$ from a few $20\%$-capacity episodes. The two are
+different evaluation units (Table~\ref{tab:evalunits}), a stricter per-capacity feasibility
+surface versus a pooled weekly aggregate over capacities and seeds---consistent rather than
+contradictory.
+
+\begin{table}[h]
+\centering
+\caption{The two severity-1 all-pass figures use different evaluation units and are consistent, not contradictory.}
+\label{tab:evalunits}
+\begin{tabular}{lccc}
+\hline
+Figure & Source & Aggregation & Seeds \\
+\hline
+$0.000$ & game response-surface & per-capacity (binding 35\%/50\% cells) & 5 \\
+$0.012$ & weekly severity table & pooled over 20/35/50\% capacities & 20 \\
+\hline
+\end{tabular}
+\end{table}
+
+The three
+actor utilities at the selfish equilibrium are unequal---at $35\%$ capacity
+$U_D=0.73$, $U_F=0.25$, $U_G=0.55$---so the \emph{fleet} operator is the worst-off
+actor under uncoordinated deviation, consistent with the queue/wait gate binding first
+in the decomposition.
+
+\paragraph{A bounded incentive restores modelled acceptability.} The acceptability frontier is a
+sharp cliff in deviation: in the raw simulator (twenty seeds at $35\%$ capacity),
+same-episode all-pass falls from $1.0$ at full compliance to $0.70$ at $d=1.25\%$, $0.10$
+at $d=1.9\%$, and $0.00$ at $d\ge2.5\%$, and the five-seed sweep shows the same cliff at
+$20\%$ and $50\%$ capacity. Acceptability therefore survives only at near-complete
+compliance (deviation below about $1.5\%$), which is
+precisely why an explicit incentive---rather than reliance on voluntary cooperation---is
+needed: the selfish equilibrium sits at $d^\star=5\%$, well past the cliff. The Pigouvian
+compliance incentive raises equilibrium compliance and lowers $d^\star(\sigma)$ across
+this cliff; it brings the equilibrium below the acceptability threshold at a bounded
+incentive $\sigma^\star$ of $0.44$--$0.68$ across capacities, with larger incentives
+buying additional margin (\figref{fig:eqap}). Three distinct incentive figures appear in
+this section and should not be confused: $\sigma^\star=0.44$--$0.68$ is the nominal scalar
+calibration across capacities; the slack-resolved calibration variant (Supplementary
+Fig.~\ref{fig:eqcalib}) gives $\sigma^\star=0.25$ at $35\%$ capacity because its incentive
+responsiveness differs; and the full game-parameter sweep gives the range
+$\sigma^\star\in[0.13,1.77]$. All are in normalised utility units, not monetary tariffs.
+The grid policy modulates the incentive
+required, but its effect is capacity-dependent rather than uniform: GridPeakPenalty
+lowers the required incentive at $50\%$ capacity but not at $35\%$. The cooperative Nash bargaining solution---the point that balances gains across the three
+actors relative to the disagreement point---selects GridPeakPenalty with near-full compliance ($d\approx0$),
+raising every actor's utility relative to the selfish equilibrium (at $35\%$ capacity to
+$U_D=0.98$, $U_F=0.56$, $U_G=0.70$) and restoring all-pass to $1.0$ (\figref{fig:eqtri}).
+The mechanism's benefit is therefore not an artifact of the binary all-pass indicator: the
+three continuous actor utilities rise monotonically as the incentive lowers deviation, so
+the same improvement is visible in the graded view of acceptability used in
+Section~\ref{sec:robust}.
+
+\paragraph{The price of anarchy.} The relative welfare lost to uncoordinated behaviour and
+indexed as recoverable under the modelled mechanism is substantial: the price of anarchy
+$W_{\mathrm{NBS}}/W_{\mathrm{selfish}}$ is $1.48$, $1.46$, and $1.48$ at $20\%$, $35\%$,
+and $50\%$ capacity (\figref{fig:eqpoa})---coordination yields a relative welfare gain of
+roughly $47\%$ on the normalised utilities. These conclusions are stable across the explored parameter grid: over the $243$
+combinations of the externality strength $\beta\in\{1,2,4\}$, cost-heterogeneity scale
+$s\in\{0.25,0.4,0.6\}$, compliance anchor $\rho_0\in\{0.90,0.95,0.97\}$, and three
+welfare-weight sets $(w_D,w_F,w_G)$ per capacity that we tested---an
+\emph{equal}/utilitarian weighting $(\tfrac13,\tfrac13,\tfrac13)$, a \emph{driver-heavy}
+weighting $(0.5,0.25,0.25)$ representing a user-/adoption-centric stance, and a
+\emph{grid-heavy} weighting $(0.25,0.25,0.5)$ representing a system-operator stance---the selfish equilibrium is unique with
+all-pass $=0.000$, the relative price of anarchy stays in $[1.18,1.83]$ (above one in
+every tested case, and concentrated rather than uniform across that range: median $1.42$,
+interquartile range $[1.37,1.60]$, with $41\%$ of configurations in $[1.4,1.6]$ and only
+$11\%$ above $1.7$), and the incentive $\sigma^\star\in[0.13,1.77]$ restores
+modelled all-pass within the explored grid (Supplementary Fig.~\ref{fig:eqsens}). The
+equilibrium is unique throughout and contraction-stable except under simultaneously high
+externality and very low cost heterogeneity ($\beta=4$, $s=0.25$), where uniqueness
+still holds. The roughly order-of-magnitude spread in $\sigma^\star$ is driven almost
+entirely by the assumed \emph{incentive responsiveness}: the required incentive rises
+monotonically with the cost-heterogeneity scale (mean $\sigma^\star$ of $0.45$, $0.65$,
+and $0.93$ at $s=0.25$, $0.40$, $0.60$), because a more dispersed distribution of private
+compliance costs needs a larger transfer to move the marginal driver, with the maximum
+$1.77$ occurring at the least-responsive corner ($\beta=4$, $s=0.6$, $\rho_0=0.9$). We
+therefore read ``bounded'' in the precise sense that $\sigma^\star$ is finite and below
+about two normalised utility units across all $243$ configurations, while emphasising that
+its practical magnitude depends on an empirically unknown quantity---how responsive
+compliance is to incentives---so a deployment estimate would require measuring that
+responsiveness directly. This dependence is itself a useful design statement: the value of
+the incentive lever hinges on the elasticity of compliance, which a managed-charging trial
+could estimate.
+
+\paragraph{Interpretation and honesty.} This mechanism analysis shows that the
+multi-actor collapse is not a dead end: a transparent, bounded incentive paired with the
+grid signal moves the system from the uncoordinated equilibrium to a point where driver,
+fleet, and grid are jointly acceptable. The driver game is a \emph{calibrated behavioral
+model}---magnitude and slack-structure anchored to data---not a mechanism fitted to
+logged opt-out choices; the welfare weights are normative (we report sensitivity); and
+the incentive $\sigma$ is in normalised utility units, not a claimed dollar tariff.
+Translating $\sigma^\star$ into a deployable price schedule and fitting the compliance
+response to a managed-charging trial remain the defined next steps.
+
+% ---------------- figures ----------------
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.62\textwidth]{figures/fig_eq_bestresponse.pdf}
+\caption{Driver compliance as a congestion game (35\% capacity). The best-response
+map $\Phi(\rho)$ crosses the $45^\circ$ line once, giving a unique stable Nash
+equilibrium. With no incentive the equilibrium sits at compliance $\rho^\star=0.95$
+(deviation $d^\star=0.05$), the ACN-anchored operating point at which same-episode
+all-pass acceptability is zero; the Pigouvian-style incentive $\sigma^\star$ shifts the
+best response up, moving the equilibrium toward full compliance.}
+\label{fig:eqbr}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\textwidth]{figures/fig_eq_allpass_vs_incentive.pdf}
+\caption{All-pass acceptability of the induced driver equilibrium as a function of the
+compliance incentive $\sigma$, for the two grid policies at each capacity. The selfish
+equilibrium ($\sigma=0$, red marker) is unacceptable; a bounded incentive restores
+all-pass at every capacity. The grid policy modulates the incentive required, with a
+capacity-dependent sign (GridPeakPenalty helps at $50\%$ capacity).}
+\label{fig:eqap}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.6\textwidth]{figures/fig_eq_utility_triangle.pdf}
+\caption{Driver, fleet, and grid utilities (35\% capacity) at the selfish Nash
+equilibrium, at the implemented incentive $\sigma^\star$, and at the cooperative Nash
+bargaining solution. The fleet is the worst-off actor under uncoordinated deviation; the
+mechanism expands all three utilities toward the bargaining target.}
+\label{fig:eqtri}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/fig_eq_poa.pdf}
+\caption{Left: price of anarchy $W_{\mathrm{NBS}}/W_{\mathrm{selfish}}$ by capacity
+(coordination is worth roughly a $47\%$ welfare gain). Right: minimum incentive
+$\sigma^\star$ that restores modelled all-pass, by capacity and grid policy.}
+\label{fig:eqpoa}
+\end{figure}
+
+\section{Discussion}\label{sec:discussion}
+
+The main practical implication is that EV charging control should be evaluated as a multi-actor energy-system problem. A policy may be active, feasible in a local simulator, and attractive under one metric while still being unacceptable to the actors required for deployment. The actor-gate framework makes that failure explicit. For a facility operator, the framework identifies whether service or fleet operation is the limiting concern. For grid planners, it distinguishes peak-ratio improvements from system acceptability. For researchers, it provides a claim discipline that prevents mechanism claims from outrunning trace evidence.
+
+\paragraph{Applying the framework to a new fleet, city, or network.} The method is portable in five steps. (1)~\emph{Specify participation constraints.} Elicit each actor's minimum requirement and encode it as a gate---driver service/reliability, fleet queueing/waiting/cost, grid load-shape---with thresholds drawn from local service-level agreements rather than our values. (2)~\emph{Calibrate demand.} Fit the session-energy, dwell, and arrival distributions to local charging logs, as we do against ACN-Data. (3)~\emph{Bracket compliance.} Anchor the deviation magnitude and slack structure to local opt-out/override rates from a pilot or comparable program; in the absence of such data, sweep deviation as a stress test as we do here. (4)~\emph{Compute and disaggregate feasibility.} Evaluate the same-episode feasibility probability and break it down by capacity, by binding gate, and by behavior type (as in \figref{fig:eqdiag}) to locate \emph{which} constraint binds and \emph{which} behavior causes it. (5)~\emph{Choose the lever.} If infrastructure binds, add capacity; if compliance binds---as it does here---design a compliance incentive targeting the specific high-churn behavior identified in step~4, and size it against the local compliance-response curve. The framework's output is thus not a verdict but a diagnosis that points to the corrective action.
+
+This same-episode acceptability screen is complementary to, but distinct from, the multi-objective and Pareto-frontier analyses commonly used for EV charging \cite{wang2024multiobj,das2020technoecon,woo2021}. A Pareto front characterises the achievable trade-off surface between objectives, typically aggregated over scenarios, and a point can be Pareto-efficient while still violating one actor's requirement in a given operating episode. The added screening value here is the explicit, per-episode joint-satisfaction test: it asks not whether a policy is efficient on average but whether driver, fleet, and grid requirements can be met in the same scenario, and it localises which actor and which metric bind first. As the robustness analysis shows, that joint test exposes degradation across several distinct criteria simultaneously, which marginal or scenario-averaged objective comparisons can mask. This is not merely conceptual: a Pareto-efficient policy can sit on the objective-space frontier yet fail the conjunction (\figref{fig:pareto}: CostOnly dominates ServiceFirst on cost and reliability but scores $0\%$ same-episode all-pass), and at severity~1 a scenario-averaged evaluation passes 11 of the 14 gates and would judge the service-oriented policy broadly acceptable, whereas the same-episode screen yields near-zero joint acceptability ($1.2\%$ weekly; Section~\ref{sec:results}), because the binding violations occur in different episodes. Building on this lens, the mechanism analysis in Section~\ref{sec:game} adds a constructive layer: the Nash bargaining solution identifies a principled, fair point on the achievable utility set that also clears the gates, and the Stackelberg compliance incentive moves the induced equilibrium toward that point. The contribution is therefore the joint-feasibility lens \emph{together with} a calibrated mechanism analysis showing that a bounded incentive can move the system back toward joint acceptability, rather than a new controller or a calibrated behavioral prediction.
+
+The behavioral severity result is important but should be interpreted conservatively. The simulations show severity-dependent request-event pressure and same-episode all-pass failure under the specified gates. The demanded-kWh ledger confirms that the simulator's internal energy accounting is self-consistent (the ledger identity balances to $10^{-4}$ kWh), ruling out numerical errors as the source of the effect and showing that the modelled behavioral effect is event churn---request-event counts rise while simulator demanded kWh modestly falls---rather than energy amplification. It is an \emph{internal} consistency check, not a validation against field measurements: it verifies the simulator does not gain or lose energy, but does not establish that the simulator's energy figures match a real fleet's. In practical terms, more frequent request interactions can burden the dispatch pipeline and change gate outcomes even without higher simulator demanded kWh. None of this proves real-world energy-demand amplification or calibrated driver response. The next scientific step is calibration against observed participation, opt-out, and override behavior.
+
+The grid-policy result also requires disciplined interpretation. PeakPenalty can reduce selected peak ratios and feeder stress deltas, but it does not rescue all-pass acceptability once driver and fleet gates fail. This finding is relevant to energy systems because it shows that grid-side control cannot be judged only by peak reduction when deployment also requires driver and fleet acceptance.
+
+The IEEE-33 screen adds a distribution-system lens but should not be oversold: voltage counts are base-load dominated and serve only as a boundary condition, while the interpretable policy signals are the relative deltas in line loading, losses, and substation peak.
+
+\section{Limitations}\label{sec:limitations}
+
+The study is simulation-only, and the behavioral-response layer is its main calibration gap. The charging-demand model is calibrated to and validated against real ACN-Data and cross-checked against ACN-Sim (Section~\ref{sec:extval}), and the grid physics uses a validated solver on a benchmark feeder. The behavioral severity levels are stress tests: their deviation \emph{magnitudes} are anchored to observed plan-deviation rates in the same ACN-Data (early disconnection, departure mismatch, and explicit input changes; Section~\ref{sec:design}), and the low-deviation level is low relative to those observed rates---though not directly comparable, because the severity parameter operates at the vehicle-timestep level rather than per session---but the within-level \emph{mechanism}---which vehicle-timesteps deviate and how the self-service rule responds---is not fitted to observed session-level choices. In other words, the deviation magnitude is empirically anchored while its fine-grained temporal structure remains a model. Reading the magnitudes as deployment forecasts would still require fitting the response mechanism to a managed-charging dataset with logged opt-out/override decisions and validating against real feeder measurements.
+
+The evidence base is moderate: each severity cell aggregates 240 episodes (twenty seeds, three capacities, two grid policies, two service fleet policies), and reported intervals are bootstrap estimates over these episodes. The longer-horizon demanded-kWh trace and 28-day confirmation are targeted to the 35\% capacity service-oriented cases (five seeds, one capacity) rather than run exhaustively across capacities, so the $0\%$ 28-day figure is a single-capacity confirmation with higher per-estimate variance than the 20-seed weekly sweep, not an independent multi-capacity result; it should be read as consistent with, not a stronger generalization of, the weekly collapse. Larger seed counts and additional long-horizon capacity combinations would tighten the estimates.
+
+The acceptability gates and their aggregation are normative. The thresholds are not universal constants, and the all-pass indicator is a strict conjunction of binary criteria that sharpens any degradation, so it should be read together with the graded fraction-of-criteria index rather than as a standalone cliff. Section~\ref{sec:robust} shows the qualitative conclusion is less sensitive across the tested threshold and aggregation choices, but selecting a single canonical rule and stakeholder-set cut-points for deployment decisions remains open.
+
+The IEEE-33 feeder screen is representative rather than site-specific: it compares EV-off-relative deltas in substation peak, line loading, and losses but is not an interconnection study and does not validate feasibility for a real feeder.
+
+ServiceGridWeighted is a fixed heuristic comparator, not an optimal controller; it reduces strawman-baseline risk and should not be read as state-of-the-art control.
+
+The game-theoretic mechanism (Section~\ref{sec:game}) is a behavioral overlay on the simulator rather than an agent-based strategic simulation: the simulator supplies the actor utilities and acceptability at each aggregate deviation level, while the compliance equilibrium is computed on a calibrated congestion-game model whose deviation magnitude and slack structure are anchored to data but whose functional forms (a linear congestion externality, logistic cost heterogeneity) are assumed. We sweep the game's parameters but not its forms; the actor utilities are min--max normalised within each capacity so the price of anarchy is a relative welfare measure; and the incentive $\sigma$ is expressed in normalised utility units rather than as a monetary tariff, so we describe it as Pigouvian-style rather than a calculated external-cost tax. Relatedly, the fleet utility is modelled on the service/availability channel: a profit-weighted objective is uninformative here because the simulator's demand charge does not respond to behavioral churn and its cost units are synthetic, so delivered energy and cost fall together and offset (Section~\ref{sec:game}); a deployment study with realistic demand-charge dynamics, where uncoordinated charging typically raises the fleet's largest cost, would sharpen the fleet's economic exposure rather than soften it. As an order-of-magnitude anchor for the missing monetary mapping, the managed-charging pilots we cite move per-session compliance with incentives on the order of a few dollars per session \cite{alexeenko2023pilot,dudek2021electricnation,bailey2025fieldexp}, which sets the rough scale a deployable translation of $\sigma^\star$ would target; we do not claim a precise utility-to-money conversion. A further idealization is observability: the Stackelberg operator is assumed to know the compliance-response function $\Phi$ and to observe the aggregate deviation $d^\star$ when setting $\sigma$. In a live program the operator would instead infer compliance from charging-session logs---comparing recommended schedules against delivered actions and tracking opt-out/override rates---which is the same decision-level data that fitting the mechanism requires and that we do not have. Two complications follow: the operator must separate genuine behavioral deviation from legitimate preference changes or equipment faults in the logs, and the response function $\Phi$ would have to be estimated online from the realized incentive--compliance relationship rather than assumed; measurement noise in $d^\star$ then propagates into the chosen $\sigma$. We therefore present the Stackelberg analysis as a characterization of the lever under known response, not as an estimator an operator could run today; specifying the observable compliance signals and an online, noise-robust estimator for $\Phi$ is a defined next step. Translating $\sigma^\star$ into a deployable price schedule, making the strategic response endogenous within an agent-based charging simulation, and fitting the compliance model to a managed-charging trial with logged opt-out decisions are the natural next steps.
+
+\section{Conclusions}\label{sec:conclusions}
+
+This paper recasts the deployability of managed EV charging as multi-actor compliance \emph{feasibility}. Each actor gate is a participation constraint, an episode is feasible when the driver, fleet, and grid constraints hold jointly, and the object of study is the feasible set and the probability the system lies inside it---not the optimum of a blended objective, because the actors' requirements are non-compensatory.
+
+The evidence shows that service-oriented policies usually pass the conjunction under full compliance, though grid load-shape failures and capacity effects keep severity-0 acceptability below one, while low-deviation severity-1 behavior reduces same-episode all-pass acceptability to near zero under the current gates---to 1.2\% in the 20-seed weekly sweep, with a single-capacity 28-day check (35\% capacity, five seeds) consistent with this collapse rather than constituting an independent multi-capacity confirmation. Request-event pressure rises smoothly with severity, while the conjunction of driver, fleet, and grid gates fails at severity 1. GridPeakPenalty can reduce selected peak ratios but does not rescue all-pass outcomes after driver and fleet gates fail.
+
+The demanded-kWh audit classifies behavioral severity as request-event churn rather than true demanded-kWh amplification; event counts rise while simulator demanded kWh modestly falls.
+
+In the calibrated congestion-game model the no-incentive equilibrium coincides with the acceptability collapse, and a bounded Pigouvian-style compliance incentive---set by the operator as a Stackelberg leader and paired with the grid signal---moves the equilibrium toward the cooperative Nash bargaining target and restores joint driver--fleet--grid acceptability within the model. The relative price of anarchy is about 1.5, and these conclusions hold across the tested capacities and game parameters, so the diagnostic collapse comes with a constructive remedy---subject to calibrating the compliance mechanism to field data, which remains the key next step.
+
+The contribution is a participation-feasibility account of managed-charging deployment: a feasible set defined by per-actor participation constraints; a concrete compliance threshold ($\sim$98.5\% compliance) below which feasibility collapses, robust to scheduler choice (least-laxity and earliest-deadline) and to the non-compliant preference form; and a congestion-game identification of a compliance incentive---not a better scheduler---as the operator's effective lever, with a relative price of anarchy near $1.5$. The demand layer is anchored in ACN-Data and ACN-Sim; the behavioral layer remains a model-assumed structure calibrated to deviation magnitudes, and fitting it to logged opt-out data is the natural next step. The central lesson is actionable: beyond a competent scheduler, the binding constraint for deploying managed charging is securing near-complete compliance, so program operators, regulators, and tariff designers should treat participation incentives---not further scheduling optimization---as the primary deployment lever.
+
+\section*{CRediT author statement}
+Peijia Pok: Conceptualization, Methodology, Software, Formal analysis, Visualization, Writing -- original draft. Soomin Woo: Methodology, Validation, Writing -- review and editing. Hwasoo Yeo: Supervision, Project administration, Writing -- review and editing.
+
+\section*{Declaration of competing interest}
+The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.
+
+\section*{Data and code availability}
+The data and code needed to reproduce the reported tables and figures will be made available in a public repository upon publication. The repository will include the analysis code, simulation outputs, figure-generation code, trace files, and environment metadata, and will be archived with a citable DOI (e.g., via Zenodo) at acceptance so that the reported tables and figures are independently reproducible.
+
+\begin{thebibliography}{99}
+\bibitem{woo2021} S. Woo, S. Bae, S. J. Moura, Pareto optimality in cost and service quality for an Electric Vehicle charging facility, Applied Energy 290 (2021) 116779. \url{https://doi.org/10.1016/j.apenergy.2021.116779}.
+\bibitem{ma2013} Z. Ma, D. S. Callaway, I. A. Hiskens, Decentralized charging control of large populations of plug-in electric vehicles, IEEE Transactions on Control Systems Technology 21(1) (2013) 67--78. \url{https://doi.org/10.1109/TCST.2011.2174059}.
+\bibitem{gan2013} L. Gan, U. Topcu, S. H. Low, Optimal decentralized protocol for electric vehicle charging, IEEE Transactions on Power Systems 28(2) (2013) 940--951. \url{https://doi.org/10.1109/TPWRS.2012.2210288}.
+\bibitem{sortomme2011} E. Sortomme, M. A. El-Sharkawi, Optimal charging strategies for unidirectional vehicle-to-grid, IEEE Transactions on Smart Grid 2(1) (2011) 131--138. \url{https://doi.org/10.1109/TSG.2010.2090910}.
+\bibitem{lee2021adaptive} Z. J. Lee, G. S. Lee, T. Lee, C. Jin, R. Lee, Z. Low, D. Chang, C. Ortega, S. H. Low, Adaptive charging networks: A framework for smart electric vehicle charging, IEEE Transactions on Smart Grid 12(5) (2021) 4339--4350. \url{https://doi.org/10.1109/TSG.2021.3074437}.
+\bibitem{lee2019acnsim} Z. J. Lee, S. Sharma, D. Johansson, S. H. Low, ACN-Sim: An open-source simulator for data-driven electric vehicle charging research, IEEE SmartGridComm (2019). \url{https://doi.org/10.1109/SmartGridComm.2019.8909765}.
+\bibitem{acndata2019} Z. J. Lee, T. Li, S. H. Low, ACN-Data: Analysis and applications of an open EV charging dataset, in: Proceedings of the Tenth ACM International Conference on Future Energy Systems (e-Energy '19) (2019) 139--149. \url{https://doi.org/10.1145/3307772.3328313}.
+\bibitem{will2016} C. Will, A. Schuller, Understanding user acceptance factors of electric vehicle smart charging, Transportation Research Part C 71 (2016) 198--214. \url{https://doi.org/10.1016/j.trc.2016.07.006}.
+\bibitem{bailey2015} J. Bailey, J. Axsen, Anticipating PEV buyers' acceptance of utility controlled charging, Transportation Research Part A 82 (2015) 29--46. \url{https://doi.org/10.1016/j.tra.2015.09.004}.
+\bibitem{schmalfuss2015} N. Schmalfuss, K. Muhl, J. F. Krems, User responses to a smart charging system in Germany: Battery electric vehicle driver motivation, attitudes and acceptance, Energy Research \& Social Science 9 (2015) 60--71. \url{https://doi.org/10.1016/j.erss.2015.08.019}.
+\bibitem{delmonte2020} E. Delmonte, N. Kinnear, B. Jenkins, S. Skippon, What do consumers think of smart charging? Perceptions among actual and potential plug-in electric vehicle adopters in the United Kingdom, Energy Research \& Social Science 60 (2020) 101318. \url{https://doi.org/10.1016/j.erss.2019.101318}.
+\bibitem{tarroja2021} B. Tarroja, E. Hittinger, The value of consumer acceptance of controlled electric vehicle charging in a decarbonizing grid: The case of California, Energy 229 (2021) 120691. \url{https://doi.org/10.1016/j.energy.2021.120691}.
+\bibitem{danner2021} D. Danner, H. de Meer, Quality of service and fairness for electric vehicle charging as a service, Energy Informatics 4(Suppl 3) (2021) 16. \url{https://doi.org/10.1186/s42162-021-00175-3}.
+\bibitem{clement2010} K. Clement-Nyns, E. Haesen, J. Driesen, The impact of charging plug-in hybrid electric vehicles on a residential distribution grid, IEEE Transactions on Power Systems 25(1) (2010) 371--380. \url{https://doi.org/10.1109/TPWRS.2009.2036481}.
+\bibitem{elnozahy2014} M. S. ElNozahy, M. M. A. Salama, A comprehensive study of the impacts of PHEVs on residential distribution networks, IEEE Transactions on Sustainable Energy 5(1) (2014) 332--342. \url{https://doi.org/10.1109/TSTE.2013.2284573}.
+\bibitem{baran1989} M. E. Baran, F. F. Wu, Network reconfiguration in distribution systems for loss reduction and load balancing, IEEE Transactions on Power Delivery 4(2) (1989) 1401--1407. \url{https://doi.org/10.1109/61.25627}.
+\bibitem{thurner2018} L. Thurner, A. Scheidler, F. Schafer, J.-H. Menke, J. Dollichon, F. Meier, S. Meinecke, M. Braun, Pandapower--an open-source Python tool for convenient modeling, analysis, and optimization of electric power systems, IEEE Transactions on Power Systems 33(6) (2018) 6510--6521. \url{https://doi.org/10.1109/TPWRS.2018.2829021}.
+\bibitem{pandapowerdoc} pandapower development team, pandapower documentation, official documentation (accessed 10 June 2026). \url{https://pandapower.readthedocs.io/}.
+\bibitem{richardson2013} D. B. Richardson, Electric vehicles and the electric grid: A review of modeling approaches, impacts, and renewable energy integration, Renewable and Sustainable Energy Reviews 19 (2013) 247--254. \url{https://doi.org/10.1016/j.rser.2012.11.042}.
+\bibitem{green2011} R. C. Green, L. Wang, M. Alam, The impact of plug-in hybrid electric vehicles on distribution networks: A review and outlook, Renewable and Sustainable Energy Reviews 15(1) (2011) 544--553. \url{https://doi.org/10.1016/j.rser.2010.08.015}.
+\bibitem{muratori2018} M. Muratori, Impact of uncoordinated plug-in electric vehicle charging on residential power demand, Nature Energy 3(3) (2018) 193--201. \url{https://doi.org/10.1038/s41560-017-0074-z}.
+\bibitem{dubey2015} A. Dubey, S. Santoso, Electric vehicle charging on residential distribution systems: Impacts and mitigations, IEEE Access 3 (2015) 1871--1893. \url{https://doi.org/10.1109/ACCESS.2015.2476996}.
+\bibitem{pieltain2011} L. Pieltain Fernandez, T. G. San Roman, R. Cossent, C. M. Domingo, P. Frias, Assessment of the impact of plug-in electric vehicles on distribution networks, IEEE Transactions on Power Systems 26(1) (2011) 206--213. \url{https://doi.org/10.1109/TPWRS.2010.2049133}.
+\bibitem{lopes2011} J. A. P. Lopes, F. J. Soares, P. M. R. Almeida, Integration of electric vehicles in the electric power system, Proceedings of the IEEE 99(1) (2011) 168--183. \url{https://doi.org/10.1109/JPROC.2010.2066250}.
+\bibitem{rotering2011} N. Rotering, M. Ilic, Optimal charge control of plug-in hybrid electric vehicles in deregulated electricity markets, IEEE Transactions on Power Systems 26(3) (2011) 1021--1029. \url{https://doi.org/10.1109/TPWRS.2010.2086083}.
+\bibitem{nimalsiri2020} N. I. Nimalsiri, C. P. Mediwaththe, E. L. Ratnam, M. Shaw, D. B. Smith, S. K. Halgamuge, A survey of algorithms for distributed charging control of electric vehicles in smart grid, IEEE Transactions on Intelligent Transportation Systems 21(11) (2020) 4497--4515. \url{https://doi.org/10.1109/TITS.2019.2943620}.
+\bibitem{powell2022} S. Powell, G. V. Cezar, L. Min, I. M. L. Azevedo, R. Rajagopal, Charging infrastructure access and operation to reduce the grid impacts of deep electric vehicle adoption, Nature Energy 7(10) (2022) 932--945. \url{https://doi.org/10.1038/s41560-022-01105-7}.
+\bibitem{sovacool2018} B. K. Sovacool, L. Noel, J. Axsen, W. Kempton, The neglected social dimensions to a vehicle-to-grid (V2G) transition: A critical and systematic review, Environmental Research Letters 13(1) (2018) 013001. \url{https://doi.org/10.1088/1748-9326/aa9c6d}.
+\bibitem{hardman2018} S. Hardman, A. Jenn, G. Tal, J. Axsen, G. Beard, N. Daina, E. Figenbaum, N. Jakobsson, et al., A review of consumer preferences of and interactions with electric vehicle charging infrastructure, Transportation Research Part D: Transport and Environment 62 (2018) 508--523. \url{https://doi.org/10.1016/j.trd.2018.04.002}.
+\bibitem{funke2019} S. A. Funke, F. Sprei, T. Gnann, P. Plotz, How much charging infrastructure do electric vehicles need? A review of the evidence and international comparison, Transportation Research Part D: Transport and Environment 77 (2019) 224--242. \url{https://doi.org/10.1016/j.trd.2019.10.024}.
+\bibitem{quiros2018} J. Quiros-Tortos, A. Navarro-Espinosa, L. F. Ochoa, T. Butler, Statistical representation of EV charging: Real data analysis and applications, 2018 Power Systems Computation Conference (PSCC) (2018) 1--7. \url{https://doi.org/10.23919/PSCC.2018.8442988}.
+\bibitem{pournaras2019} E. Pournaras, S. Jung, S. Yadhunathan, H. Zhang, X. Fang, Socio-technical smart grid optimization via decentralized charge control of electric vehicles, Applied Soft Computing 82 (2019) 105573. \url{https://doi.org/10.1016/j.asoc.2019.105573}.
+\bibitem{sadeghian2022} O. Sadeghian, A. Oshnoei, B. Mohammadi-ivatloo, V. Vahidinasab, A. Anvari-Moghaddam, A comprehensive review on electric vehicles smart charging: Solutions, strategies, technologies, and challenges, Journal of Energy Storage 54 (2022) 105241. \url{https://doi.org/10.1016/j.est.2022.105241}.
+\bibitem{shaukat2018} N. Shaukat, B. Khan, S. M. Ali, C. A. Mehmood, J. Khan, U. Farid, M. Majid, S. M. Anwar, et al., A survey on electric vehicle transportation within smart grid system, Renewable and Sustainable Energy Reviews 81 (2018) 1329--1349. \url{https://doi.org/10.1016/j.rser.2017.05.092}.
+\bibitem{richardson2012local} P. Richardson, D. Flynn, A. Keane, Local versus centralized charging strategies for electric vehicles in low voltage distribution systems, IEEE Transactions on Smart Grid 3(2) (2012) 1020--1028. \url{https://doi.org/10.1109/TSG.2012.2185523}.
+\bibitem{alexeenko2023pilot} P. Alexeenko, E. Bitar, Achieving reliable coordination of residential plug-in electric vehicle charging: A pilot study, Transportation Research Part D: Transport and Environment 118 (2023) 103658. \url{https://doi.org/10.1016/j.trd.2023.103658}.
+\bibitem{dudek2021electricnation} E. Dudek, The flexibility of domestic electric vehicle charging: The Electric Nation project, IEEE Power and Energy Magazine 19(4) (2021) 16--27. \url{https://doi.org/10.1109/MPE.2021.3072714}.
+\bibitem{bailey2025fieldexp} M. R. Bailey, D. P. Brown, B. Shaffer, F. A. Wolak, Show me the money! A field experiment on electric vehicle charge timing, American Economic Journal: Economic Policy 17(2) (2025) 259--284. \url{https://doi.org/10.1257/pol.20230653}.
+\bibitem{wong2023incentives} S. D. Wong, S. A. Shaheen, E. Martin, R. Uyeki, Do incentives make a difference? Understanding smart charging program adoption for electric vehicles, Transportation Research Part C: Emerging Technologies 151 (2023) 104123. \url{https://doi.org/10.1016/j.trc.2023.104123}.
+\bibitem{tan2023fair} M. Tan, Y. Ren, R. Pan, L. Wang, J. Chen, Fair and efficient electric vehicle charging scheduling optimization considering the maximum individual waiting time and operating cost, IEEE Transactions on Vehicular Technology 72(8) (2023) 9808--9820. \url{https://doi.org/10.1109/TVT.2023.3257547}.
+\bibitem{tsaousoglou2023fair} G. Tsaousoglou, J. S. Giraldo, P. Pinson, N. G. Paterakis, Fair and scalable electric vehicle charging under electrical grid constraints, IEEE Transactions on Intelligent Transportation Systems 24(12) (2023) 15169--15177. \url{https://doi.org/10.1109/TITS.2023.3311509}.
+\bibitem{theodoropoulos2022proportional} T. Theodoropoulos, P. Pantazopoulos, E. Karfopoulos, P. Lytrivis, G. Karaseitanidis, A. Amditis, Proportionally fair and scalable EV charging under distribution line voltage constraints, Electric Power Systems Research 208 (2022) 107797. \url{https://doi.org/10.1016/j.epsr.2022.107797}.
+\bibitem{wang2024multiobj} Y. Wang, H. Wang, R. Razzaghi, M. Jalili, A. Liebman, Multi-objective coordinated EV charging strategy in distribution networks using an improved augmented epsilon-constrained method, Applied Energy 369 (2024) 123547. \url{https://doi.org/10.1016/j.apenergy.2024.123547}.
+\bibitem{das2020technoecon} R. Das, Y. Wang, G. Putrus, R. Kotter, M. Marzband, B. Herteleer, J. Warmerdam, Multi-objective techno-economic-environmental optimisation of electric vehicle for energy services, Applied Energy 257 (2020) 113965. \url{https://doi.org/10.1016/j.apenergy.2019.113965}.
+\bibitem{liu2019decentralized} M. Liu, P. K. Phanivong, Y. Shi, D. S. Callaway, Decentralized charging control of electric vehicles in residential distribution networks, IEEE Transactions on Control Systems Technology 27(1) (2019) 266--281. \url{https://doi.org/10.1109/TCST.2017.2771307}.
+\bibitem{liu2024busdepot} X. Liu, S. Yeh, P. Pl\"otz, W. Ma, F. Li, X. Ma, Electric bus charging scheduling problem considering charging infrastructure integrated with solar photovoltaic and energy storage systems, Transportation Research Part E: Logistics and Transportation Review 187 (2024) 103572. \url{https://doi.org/10.1016/j.tre.2024.103572}.
+\bibitem{passow2025fleet} F. H. Passow, R. Rajagopal, Charging electrified commercial vehicle fleets with reduced grid capacity using low-capital-cost depot management strategies, Applied Energy 401 (2025) 126563. \url{https://doi.org/10.1016/j.apenergy.2025.126563}.
+\bibitem{wang2009mcda} J.-J. Wang, Y.-Y. Jing, C.-F. Zhang, J.-H. Zhao, Review on multi-criteria decision analysis aid in sustainable energy decision-making, Renewable and Sustainable Energy Reviews 13(9) (2009) 2263--2278. \url{https://doi.org/10.1016/j.rser.2009.06.021}.
+
+\bibitem{mcfadden1974} D. McFadden, Conditional logit analysis of qualitative choice behavior, in: P. Zarembka (Ed.), Frontiers in Econometrics, Academic Press, New York, 1974, pp. 105--142.
+
+\bibitem{daina2017} N. Daina, A. Sivakumar, J. W. Polak, Electric vehicle charging choices: Modelling and implications for smart charging services, Transportation Research Part C: Emerging Technologies 81 (2017) 36--56. \url{https://doi.org/10.1016/j.trc.2017.05.006}.
+\bibitem{wustenhagen2007acceptance} R. W\"ustenhagen, M. Wolsink, M. J. B\"urer, Social acceptance of renewable energy innovation: An introduction to the concept, Energy Policy 35(5) (2007) 2683--2691. \url{https://doi.org/10.1016/j.enpol.2006.12.001}.
+\bibitem{marxen2023flexibility} H. Marxen, M. Ansarin, R. Chemudupaty, G. Fridgen, Empirical evaluation of behavioral interventions to enhance flexibility provision in smart charging, Transportation Research Part D: Transport and Environment 123 (2023) 103897. \url{https://doi.org/10.1016/j.trd.2023.103897}.
+
+\end{thebibliography}
+
+\clearpage
+\section*{Supplementary material}\label{sec:supp}
+
+\renewcommand{\thefigure}{S\arabic{figure}}
+\setcounter{figure}{0}
+\renewcommand{\thetable}{S\arabic{table}}
+\setcounter{table}{0}
+
+\subsection*{Supplementary figures}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/fig_eq_sensitivity.pdf}
+\caption{Robustness of the game-theoretic mechanism (Section~\ref{sec:game}) to the game's free parameters. Across $243$ combinations of externality strength $\beta\in\{1,2,4\}$, cost-heterogeneity scale $s\in\{0.25,0.4,0.6\}$, compliance anchor $\rho_0\in\{0.90,0.95,0.97\}$, and three welfare-weight sets per capacity, the price of anarchy is always above one (left) and the minimum incentive $\sigma^\star$ restores modelled all-pass in every tested configuration (right). The selfish equilibrium is unique with all-pass $=0.000$ throughout.}
+\label{fig:eqsens}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.62\textwidth]{figures/fig_eq_optimizev_calibration.pdf}
+\caption{Soft calibration of the driver compliance model (Section~\ref{sec:game}) to the OptimizEV managed-charging pilot \cite{alexeenko2023pilot}. The model's slack-gradient is taken from the OptimizEV opt-in-versus-slack curve (gray dashed, left axis; black squares are the reported low- and high-slack opt-in values), while the absolute compliance level is anchored to the ACN deviation magnitude (blue, right axis, mean $0.95$). Program opt-in and per-decision compliance are different quantities shown on different axes; only the monotone slack-dependence is transferred.}
+\label{fig:eqcalib}
+\end{figure}
+
+\paragraph{Fleet economics: why service, not energy cost.} A fleet operator ultimately cares about money, so we tested a profit-weighted fleet objective (delivered-energy revenue minus normalised energy and demand-charge cost) in place of the service utility $U_F$ of Section~\ref{sec:game}. It is \emph{less} informative here, for a revealing reason: as deviation rises the simulator's delivered energy and its cost fall almost in lockstep, and the demand charge is insensitive to deviation, so a pure energy-cost-profit objective is near-neutral to deviation---even mildly rewarding it---rather than harmed (Fig.~\ref{fig:eqfleet}). Under that objective the relative price of anarchy weakens from $1.46$--$1.48$ to $1.05$--$1.33$ across capacities, because the cost saving from undelivered energy offsets the lost service revenue. This is precisely why we model the fleet on the service/availability channel: that is where deviation actually threatens fleet revenue (missed trips), whereas the energy and demand-charge cost belongs in the fleet gate. Two simulator features drive the offset---synthetic-scale cost units and a demand charge that does not respond to behavioral churn---and both understate real fleet cost exposure: in deployment, uncoordinated charging typically \emph{raises} demand charges, a fleet's largest cost lever, which would strengthen rather than weaken the fleet's exposure to deviation. We therefore report the fleet result as a service/revenue finding and treat the profit-objective sensitivity as a check that the conclusion is not an artifact of excluding costs.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.66\textwidth]{figures/fig_eq_fleet_profit.pdf}
+\caption{Fleet-economics robustness (Section~\ref{sec:game}; $35\%$ capacity, NoGridIncentive). As driver deviation rises, the fleet revenue proxy (delivered energy) and the fleet cost (energy plus demand charge) fall almost in lockstep, so a profit objective offsets to near-neutral; the demand charge itself is insensitive to deviation. The fleet service/availability utility $U_F$, by contrast, degrades. This is why the fleet's economic exposure to deviation is modelled through the service/revenue channel (missed trips), with energy and demand-charge cost handled in the fleet gate; a profit-weighted objective weakens the relative price of anarchy to $1.05$--$1.33$ through this cost-offset.}
+\label{fig:eqfleet}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/fig6_ieee33_feeder_deltas.pdf}
+\caption{IEEE-33 representative feeder stress-screen deltas (Section~\ref{sec:results}). EV charging policies produce EV-off-relative feeder stress increments in substation peak, line loading, and losses; voltage-violation deltas are exactly zero in all 900 cases. The screen is an external grid-stress lens, not site-specific feeder validation.}
+\label{fig:ieee33}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/supp_full_actor_gate_matrix.pdf}
+\caption{Full actor-gate matrix: pass rates for every policy (including the diagnostic CostOnly and QueueAware comparators) by behavior severity and grid policy. The condensed main-text \figref{fig:matrix} summarizes the service-oriented family from this matrix.}
+\label{fig:suppmatrix}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/supp_request_id_conservation_audit.pdf}
+\caption{Behavior-specific request-event ratios (actual driver-layer events relative to fleet recommendations) by behavior model and grid policy; price-sensitive and SoC-compliance behaviors generate the most request-event churn. In the accompanying request-ID conservation audit the maximum count residual is exactly zero in every case, confirming that request identifiers are conserved across the driver, fleet, and grid layers.}
+\label{fig:suppcons}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/supp_threshold_sensitivity.pdf}
+\caption{Threshold sensitivity: all-pass counts as the driver, fleet, and grid gate thresholds are swept. Tightening the delivered-ratio gate reduces severity-0 all-pass rows, while the severity-1 collapse is preserved across the tested settings (see Section~\ref{sec:robust}).}
+\label{fig:suppthresh}
+\end{figure}
+
+\subsection*{Supplementary tables}
+
+\paragraph{ServiceGridWeighted coefficient sensitivity ablation.} The six weight variants are: the base weights $320/175/120/95/55$ (with grid-penalty terms $48/32/18$); the normalized equivalents ($\div100$); equal service weights $100/100/100/100/100$; no grid penalty ($Q,P,R$ coefficients set to zero); and the base weights scaled by $\pm25\%$. Each was run at 35\% capacity for severities~0 and~1 across both grid policies and the five weekly seeds. Table~\ref{tab:sgwablation} reports the all-pass rates: every variant gives 1.00 under full compliance and 0.00 at severity~1, and the normalized variant reproduces the base weights' per-episode outcomes exactly, so the screening conclusion does not depend on the coefficient values. We restrict the ablation to severities~0 and~1 because these bracket the only non-trivial transition: all-pass is already $0.000$ for \emph{all} policies at severities~2 and~3 (Table~\ref{tab:weeklyseverity}), so no coefficient choice can lower it further, and coefficient-insensitivity at those higher severities is automatic. The $1.00\!\to\!0.00$ transition between severity~0 and~1 is therefore the discriminating case, and it is where we confirm the weights do not matter.
+
+\begin{table}[H]
+\centering
+\caption{Supplementary: ServiceGridWeighted coefficient sensitivity ablation. All-pass rate at 35\% capacity, averaged over both grid policies and five seeds, for six weight variants.}
+\label{tab:sgwablation}
+\begin{tabular}{lcc}
+\hline
+Weight variant & All-pass, severity 0 & All-pass, severity 1 \\
+\hline
+Base ($320/175/120/95/55$) & 1.000 & 0.000 \\
+Normalized ($\div 100$) & 1.000 & 0.000 \\
+Equal service ($100$ each) & 1.000 & 0.000 \\
+No grid penalty & 1.000 & 0.000 \\
+Base $\times 1.25$ & 1.000 & 0.000 \\
+Base $\times 0.75$ & 1.000 & 0.000 \\
+\hline
+\end{tabular}
+\end{table}
+
+\paragraph{ServiceGridWeighted scoring terms.} For request candidate $i$ at time $t$, the service score and, under an active queue/peak/price trigger, the deferral priority are
+\begin{equation}
+S_i = 320C_i + 175L_i + 120T_i + 95D_i + 55X_i,
+\label{eq:sgwservice}
+\end{equation}
+\begin{equation}
+Z_i = S_i - (48Q_i + 32P_t + 18R_t)F_i,
+\label{eq:sgwpriority}
+\end{equation}
+where $C_i,L_i$ are critical-service and low-SoC indicators, $T_i,D_i$ are target- and deadline-energy deficits, $X_i$ is inverse laxity, $Q_i,P_t,R_t$ are queue, peak, and price pressure, and $F_i$ marks flexible low-risk status; at most $\lfloor 0.20 n_F \rfloor$ of the $n_F$ flexible low-risk candidates are deferred. Table~\ref{tab:sgwterms} lists the implemented scoring weights, term definitions, and code sources for reproducibility. The main argument depends only on the eligibility-based dominance described in Section~\ref{sec:formulation}, not on the exact coefficients.
+
+\begin{table}[H]
+\centering
+\caption{Supplementary: implemented ServiceGridWeighted scoring and deferral terms.}
+\label{tab:sgwterms}
+\tiny
+\begin{tabularx}{\textwidth}{p{0.12\textwidth}p{0.07\textwidth}Yp{0.12\textwidth}p{0.07\textwidth}p{0.09\textwidth}p{0.14\textwidth}}
+\hline
+Score term & Symbol & Definition & Normalization & Weight & Sign & Implementation source \\
+\hline
+Critical service & $C_i$ & reserve need OR deadline deficit $>0$ OR time-to-next mandatory $\leq 24/168$ OR laxity $\leq 0.25$ & binary & 320 & positive & service-grid rule; service-critical helper \\
+Low SoC & $L_i$ & $SoC_i \leq \theta_i+0.05$ & binary & 175 & positive & service-grid weighted rule \\
+Target deficit & $T_i$ & target-energy-deficit state & simulator normalized & 120 & positive & state-array helper \\
+Deadline deficit & $D_i$ & deadline-energy-deficit state & simulator normalized & 95 & positive & state-array helper \\
+Inverse laxity & $X_i$ & $1-\mathrm{clip}(deadline\ laxity,0,1)$ & [0,1] after clipping & 55 & positive & service-grid weighted rule \\
+Queue pressure & $Q_i$ & $\max(0,(queued+requested-slots)/slots)$ at vehicle location & ratio & 48 & $-$ if flexible & queue-pressure helper \\
+Projected peak pressure & $P_t$ & $\max(0,(n_{req}-0.85n_{slots})/n_{slots})$ & ratio & 32 & $-$ if flexible & service-grid rule \\
+Price pressure & $R_t$ & current price divided by schedule maximum & ratio & 18 & $-$ if flexible & service-grid rule \\
+Deferral cap & -- & defer lowest-priority flexible low-risk subset after trigger & 20\% of candidates; min. 1 & -- & remove action & service-grid rule \\
+\hline
+\end{tabularx}
+\end{table}
+
+
+
+\end{document}

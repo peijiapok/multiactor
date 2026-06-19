@@ -1,0 +1,5 @@
+Multi-actor gates test EV charging across driver, fleet, and grid criteria.
+Low-deviation behavior reduces same-episode all-pass acceptability to near zero.
+Request-event churn, not demanded-kWh growth, explains the behavioral failure mode.
+A calibrated congestion-game overlay interprets the collapse as an uncoordinated compliance equilibrium.
+A bounded compliance incentive restores modelled all-pass acceptability across tested capacities.
