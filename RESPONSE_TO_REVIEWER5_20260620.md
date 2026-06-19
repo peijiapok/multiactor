@@ -93,7 +93,12 @@ the response-surface/severity result tables, and the figure code; the demand mod
 to public ACN-Data. The repository will be archived with a citable DOI at acceptance.
 
 ## Net effect on length
-These changes add two figures and the oracle analysis (+3 pp). We are separately compressing the
-manuscript (candidate moves of secondary figures/tables to the Supplement) to offset this and
-address the length concern raised across reviews; the compression does not touch the new
-primary evidence above.
+These changes add two figures and the oracle analysis. To offset this and address the length
+concern raised across reviews, we moved four **secondary** floats from the main text to the
+Supplement: the failure-pattern taxonomy figure, the grid-policy trade-off figure, the targeted
+28-day confirmation table, and the threshold-slack robustness-envelope table (each is a
+robustness/secondary check, not part of the conceptual chain). The main-narrative now runs
+gates → joint feasibility → threshold → oracle limit → congestion-game incentive without
+interruption, and all headline figures (acceptability matrix, severity curve, Pareto,
+marginal-vs-joint, oracle, diagnostic, and the game figures) remain in the main text. No
+primary evidence was moved; the relocated material remains fully available in the Supplement.

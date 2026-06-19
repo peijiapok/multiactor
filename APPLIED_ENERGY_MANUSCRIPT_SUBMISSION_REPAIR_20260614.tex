@@ -418,27 +418,9 @@ This same-episode framing is precisely what distinguishes the screen from scenar
 
 The behavioral effect is request-event churn rather than higher energy demand. A persistent demanded-kWh trace over the targeted 28-day service-oriented cases balances to numerical tolerance and shows that noncompliant vehicles re-enter the request pipeline at additional timesteps, through the reserve and cheap-window self-service rule, even when target- and deadline-deficit demand is unchanged or lower (Eq.~\eqref{eq:ledger}). Aggregate request-event counts rise to 2.349$\times$ severity~0 at severity~3 while simulator demanded kWh falls to 0.917$\times$; across seeds the severity-3 event ratios range from 2.306 to 2.401 and the demanded-kWh ratios from 0.908 to 0.923. Supplementary Fig.~\ref{fig:suppcons} breaks the request-event ratio down by behavior type---price-sensitive and SoC-compliance behaviors churn the most---and reports the accompanying request-ID conservation audit, whose maximum count residual is exactly zero, confirming that no request identifiers are created or lost across the driver, fleet, and grid layers. The mechanism is therefore increased request-event pressure and service-accounting stress, which break driver and fleet gates under the specified thresholds, not energy-demand amplification. We note that this churn-versus-amplification decomposition is mediated by the simulator's ledger accounting (Eq.~\eqref{eq:ledger}), which separates delivered energy, remaining demand, and a release term; a simulator with a different demand-accounting structure could partition the same behavior differently, so the distinction should be read as a property of this request-pipeline model rather than a universal claim. What is architecture-independent is the qualitative finding that the failure is driven by the timing and frequency of service requests rather than by total energy delivered, which falls slightly.
 
-\paragraph{Targeted 28-day confirmation.} \tabref{tab:target28} reports the targeted 28-day confirmation at 35\% capacity (a separate five-seed, 672 h run). The longer horizon is a targeted check, not a full-capacity confirmation. In this five-seed 35\% capacity cell, all-pass falls from 100.0\% at severity 0 to 0.0\% at severity 1; the slightly higher severity-0 value than the 20-seed weekly mean reflects the smaller seed set and the single capacity. Request-event pressure rises smoothly from 0.995 at severity 0 to 2.566 at severity 3.
+\paragraph{Targeted 28-day confirmation.} Supplementary Table~\ref{tab:target28} reports the targeted 28-day confirmation at 35\% capacity (a separate five-seed, 672 h run). The longer horizon is a targeted check, not a full-capacity confirmation. In this five-seed 35\% capacity cell, all-pass falls from 100.0\% at severity 0 to 0.0\% at severity 1; the slightly higher severity-0 value than the 20-seed weekly mean reflects the smaller seed set and the single capacity. Request-event pressure rises smoothly from 0.995 at severity 0 to 2.566 at severity 3.
 
 Two of the fourteen gates use absolute event-count thresholds (the critical and total requested-not-delivered deltas), which are extensive and therefore grow with horizon; scoring the 672 h run against the per-week thresholds makes those two gates effectively four times stricter than in the weekly screen, so the 28-day result above is best read as a conservative longer-horizon stress check. To separate the behavioral effect from this horizon-scaling, we re-scored the same 28-day episodes with horizon-fair count thresholds, scaling the two count gates by $672/168=4$ (critical requested-not-delivered delta from $24$ to $96$, requested-not-delivered delta from $117$ to $468$) while leaving the twelve intensive ratio, percentile, and load-shape gates unchanged. The severity-1 collapse is unchanged: all-pass remains $1.000$ at severity~0 and $0.000$ at severity~1 under the horizon-fair thresholds, so the 28-day failure is not an artifact of applying weekly count thresholds over the longer horizon. (A recomputation of the gates from the recorded per-episode metrics reproduces the engine's original all-pass labels exactly.)
-
-\begin{table}[t]
-\centering
-\caption{Targeted 28-day behavioral severity confirmation.}
-\label{tab:target28}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{cccccccc}
-\hline
-Severity & Driver pass & Fleet pass & Grid pass & All-pass & Actual/fleet events & Delivered ratio & Peak ratio \\
-\hline
-0 & 1.000 & 1.000 & 1.000 & 1.000 & 0.995 & 1.000 & 0.930 \\
-1 & 0.000 & 0.000 & 0.000 & 0.000 & 1.147 & 0.985 & 0.944 \\
-2 & 0.000 & 0.000 & 0.000 & 0.000 & 1.625 & 0.954 & 0.956 \\
-3 & 0.000 & 0.000 & 0.000 & 0.000 & 2.566 & 0.936 & 0.979 \\
-\hline
-\end{tabular}%
-}
-\end{table}
 
 The 28-day confirmation is targeted rather than exhaustive because it uses 35\% capacity only. It is best interpreted as a longer-horizon check of one binding capacity cell, with capacity generalization left to future expanded runs.
 
@@ -487,7 +469,7 @@ Severity & Capacity & All-pass mean & Seed std & Seed [min, max] \\
 \end{tabular}
 \end{table}
 
-Third, we test a robustness envelope over the acceptability definition itself, varying the cut-points and the aggregation rule rather than holding them fixed. In a global sweep we scale every gate margin by a common slack factor (Table~\ref{tab:envelope}). Under full compliance, all-pass is 0.967 at the nominal definition, rises toward 1.000 as the gates are loosened, and falls to 0.912 when every gate is tightened to half its margin. At severity~1, strict all-pass stays near zero (0.012 at the nominal definition) at the nominal and all tighter definitions and recovers only gradually as the entire gate system is loosened, reaching 0.071 at a $1.5\times$ slack and 0.458 only at a $2\times$ slack; the graded fraction-of-criteria index and the ``at least one actor'' rate move smoothly with the slack factor. In a complementary one-at-a-time sweep, loosening any single criterion to three times its nominal margin while holding the others fixed recovers severity-1 strict all-pass to at most 0.054, i.e. no individual cut-point is responsible for the result. To make the normative-robustness margin explicit: recovering a \emph{majority} ($>50\%$) of severity-1 all-pass requires loosening \emph{every} gate simultaneously by more than about $2\times$ (the $2\times$ envelope reaches $0.46$ and only the $3\times$ envelope clears $0.5$), whereas no single- or few-gate relaxation within the tested range exceeds $0.054$---so the collapse cannot be undone by re-tuning one or two thresholds. The qualitative conclusion---that within this simulator and gate family, behavioral deviation drives the modelled system out of same-episode multi-actor acceptability while graded acceptability degrades smoothly---therefore holds across a wide band of plausible acceptability definitions and is not rescued by relaxing any one threshold; only loosening the entire gate system by about twofold or more materially changes it. This is a statement about the modelled response under the stated gate family, not a calibrated claim that any specific real-world deviation level is unacceptable.
+Third, we test a robustness envelope over the acceptability definition itself, varying the cut-points and the aggregation rule rather than holding them fixed. In a global sweep we scale every gate margin by a common slack factor (Supplementary Table~\ref{tab:envelope}). Under full compliance, all-pass is 0.967 at the nominal definition, rises toward 1.000 as the gates are loosened, and falls to 0.912 when every gate is tightened to half its margin. At severity~1, strict all-pass stays near zero (0.012 at the nominal definition) at the nominal and all tighter definitions and recovers only gradually as the entire gate system is loosened, reaching 0.071 at a $1.5\times$ slack and 0.458 only at a $2\times$ slack; the graded fraction-of-criteria index and the ``at least one actor'' rate move smoothly with the slack factor. In a complementary one-at-a-time sweep, loosening any single criterion to three times its nominal margin while holding the others fixed recovers severity-1 strict all-pass to at most 0.054, i.e. no individual cut-point is responsible for the result. To make the normative-robustness margin explicit: recovering a \emph{majority} ($>50\%$) of severity-1 all-pass requires loosening \emph{every} gate simultaneously by more than about $2\times$ (the $2\times$ envelope reaches $0.46$ and only the $3\times$ envelope clears $0.5$), whereas no single- or few-gate relaxation within the tested range exceeds $0.054$---so the collapse cannot be undone by re-tuning one or two thresholds. The qualitative conclusion---that within this simulator and gate family, behavioral deviation drives the modelled system out of same-episode multi-actor acceptability while graded acceptability degrades smoothly---therefore holds across a wide band of plausible acceptability definitions and is not rescued by relaxing any one threshold; only loosening the entire gate system by about twofold or more materially changes it. This is a statement about the modelled response under the stated gate family, not a calibrated claim that any specific real-world deviation level is unacceptable.
 
 Because a global slack sweep could in principle be passed by a policy with strict cut-points on inert gates and one loose cut-point on the binding gate, we also defend the two \emph{load-bearing} gates individually. At severity~1 the collapse is carried by the critical-requested-not-delivered criterion (driver gate, failing in $92\%$ of episodes) and the 95th-percentile wait criterion (fleet gate, $81\%$); the other twelve criteria fail in under $2\%$ of episodes and are not load-bearing. The thresholds for these two are operationally grounded rather than arbitrary. A critical request is a trip-readiness charge that a vehicle needs to complete its assigned duty, so the cut-point of at most $24$ critical-not-delivered events per $168$-h week (about $3.4$ per day) is already a generous tolerance for a fleet; the severity-1 mean of $46$ exceeds it roughly twofold, so the failure is not marginal to the threshold. A 95th-percentile wait of $30$ minutes is a conventional charging service-level target, above which fleet turnaround and driver experience degrade materially; the severity-1 mean of $49$ minutes again exceeds it by about $1.6\times$. Both binding failures therefore overshoot defensible cut-points by $1.6$--$2\times$, and the one-at-a-time sweep confirms that loosening either of these to three times its margin still recovers severity-1 all-pass to at most $0.054$. The collapse thus rests on two gates whose thresholds are independently justifiable and whose violations are large, not on a fragile choice of cut-point.
 
@@ -506,24 +488,6 @@ Seventh, we make the scheduler-rescue question precise with an \emph{oracle} cou
 \label{fig:oracle}
 \end{figure}
 
-\begin{table}[t]
-\centering
-\caption{Robustness envelope: acceptability under a global threshold-slack factor (all 14 gate margins scaled simultaneously; slack $>1$ loosens; 20-seed service-oriented family). Full compliance stays near-universally acceptable (0.91--1.00); the severity-1 collapse persists until the whole gate system is loosened two- to threefold.}
-\label{tab:envelope}
-\begin{tabular}{ccccc}
-\hline
-Slack & All-pass sev 0 & All-pass sev 1 & Graded frac.\ sev 1 & $\geq$1 actor sev 1 \\
-\hline
-0.50 (tighter) & 0.912 & 0.000 & 0.725 & 0.246 \\
-0.75 & 0.929 & 0.000 & 0.766 & 0.354 \\
-1.00 (nominal) & 0.967 & 0.012 & 0.793 & 0.433 \\
-1.25 & 0.992 & 0.046 & 0.827 & 0.567 \\
-1.50 & 0.996 & 0.071 & 0.860 & 0.700 \\
-2.00 & 0.996 & 0.458 & 0.947 & 1.000 \\
-3.00 (looser) & 1.000 & 0.883 & 0.992 & 1.000 \\
-\hline
-\end{tabular}
-\end{table}
 
 The conclusion is that, under the scenario-bracketed behavioral layer, deviation degrades acceptability across multiple distinct criteria spanning all three actors at the same time. The strict same-episode conjunction makes this visible as an all-pass collapse, while the graded index shows the same monotonic degradation more conservatively. The effect is therefore not an artifact of one intentionally tight threshold, nor purely of the AND aggregation, and it is stable across a wide envelope of threshold and aggregation choices, although the magnitude of the binary collapse should be read together with the graded index.
 
@@ -534,27 +498,15 @@ The conclusion is that, under the scenario-bracketed behavioral layer, deviation
 \label{fig:robust}
 \end{figure}
 
-\paragraph{Failure-pattern taxonomy.} \figref{fig:failure} shows that the dominant failure pattern is not a single isolated gate. Across the weekly matrix, the categories sum to 300 rows: driver-fleet-grid failure (209 rows), all-pass (60 rows), driver-fleet failure (19 rows), driver-grid failure (7 rows), driver-only failure (3 rows), fleet-only failure (1 row), and grid-only failure (1 row). This pattern matters because it indicates that many policies are not failing on a narrow grid metric alone; they are failing as deployment policies across actors.
+\paragraph{Failure-pattern taxonomy.} Supplementary Fig.~\ref{fig:failure} shows that the dominant failure pattern is not a single isolated gate. Across the weekly matrix, the categories sum to 300 rows: driver-fleet-grid failure (209 rows), all-pass (60 rows), driver-fleet failure (19 rows), driver-grid failure (7 rows), driver-only failure (3 rows), fleet-only failure (1 row), and grid-only failure (1 row). This pattern matters because it indicates that many policies are not failing on a narrow grid metric alone; they are failing as deployment policies across actors.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.95\textwidth]{figures/fig4_failure_pattern_taxonomy.pdf}
-\caption{Failure-pattern taxonomy. The result claim is that most unacceptable cases fail multiple actor gates rather than a single isolated grid or service metric.}
-\label{fig:failure}
-\end{figure}
 
 Empirically, the result does not depend on the fixed integer weights of the ServiceGridWeighted comparator. A six-variant coefficient ablation---base weights; normalized ($\div100$); equal service weights; no grid penalty; and base $\pm25\%$, at 35\% capacity for severities~0 and~1---leaves the screening conclusion unchanged: all-pass is 1.00 under full compliance and 0.00 at severity~1 for every variant, and the normalized variant is decision-identical to the base weights. This is the expected consequence of the eligibility-based dominance established in Section~\ref{sec:formulation} (per-variant table and full coefficients in Supplementary Material~\ref{sec:supp}). ServiceGridWeighted thus confirms that the behavioral collapse is not an artifact of the ServiceFirst baseline or of arbitrary weights, and its aggregate all-pass rate (25.0\%) equals that of ServiceFirst, so it is not a superior controller.
 
 \subsection{Grid-side control trades off peaks but does not rescue acceptability}
 
-Having established that actor-gate failure is driven mainly by behavioral request churn, we next ask whether the resulting charging profiles also create interpretable distribution-system stress signals. \figref{fig:gridtradeoff} compares NoGridIncentive and GridPeakPenalty. In the targeted 28-day confirmation, GridPeakPenalty reduces the mean peak ratio at severity~1 relative to NoGridIncentive in several service-oriented groups, but all-pass remains 0.0\%. This means the grid layer can improve selected grid stress metrics without correcting driver and fleet acceptability failures. The result supports a trade-off claim, not a rescue claim.
+Having established that actor-gate failure is driven mainly by behavioral request churn, we next ask whether the resulting charging profiles also create interpretable distribution-system stress signals. Supplementary Fig.~\ref{fig:gridtradeoff} compares NoGridIncentive and GridPeakPenalty. In the targeted 28-day confirmation, GridPeakPenalty reduces the mean peak ratio at severity~1 relative to NoGridIncentive in several service-oriented groups, but all-pass remains 0.0\%. This means the grid layer can improve selected grid stress metrics without correcting driver and fleet acceptability failures. The result supports a trade-off claim, not a rescue claim.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.95\textwidth]{figures/fig5_grid_policy_tradeoff.pdf}
-\caption{Grid-policy trade-off. PeakPenalty lowers selected peak metrics but does not rescue all-pass acceptability after driver and fleet gates fail; the result is a bounded grid trade-off, not a rescue mechanism.}
-\label{fig:gridtradeoff}
-\end{figure}
 
 \paragraph{IEEE-33 feeder stress screen.} As an external grid-side lens---not part of the all-pass gate definition and not a site-specific interconnection study---we map each policy's charging profile onto the Baran--Wu IEEE-33 benchmark feeder \cite{baran1989,thurner2018,pandapowerdoc}. Across 900 feeder cases the interpretable policy signals are EV-off-relative deltas: a mean substation-peak delta of $173.8$ kW (range $87.3$--$310.9$), a mean maximum line-loading delta of $3.59$ percentage points, and a mean losses delta of $1718.8$ kWh/week. Voltage-violation timestep deltas are exactly zero in all $900$ cases, so the binary voltage metric is base-load-determined and insensitive to EV-policy differences---a non-binding feasibility check rather than evidence of voltage feasibility, not to be generalized to weaker feeders or higher penetration (Supplementary Fig.~\ref{fig:ieee33}). The grid acceptability gate itself is governed instead by the load-shape sub-gate: the squared-load and ramp criteria fail in $0.55$ and $0.46$ of severity-1 episodes, whereas the peak-ratio criterion rarely binds ($0.01$) and the voltage screen never binds, so the grid actor is exercised through load-shape stress, not the voltage screen.
 
@@ -1036,6 +988,20 @@ The analysis code, derived simulation outputs, and figure-generation scripts nee
 \label{fig:suppthresh}
 \end{figure}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/fig4_failure_pattern_taxonomy.pdf}
+\caption{Failure-pattern taxonomy (Section~\ref{sec:results}). Most unacceptable cases fail multiple actor gates rather than a single isolated grid or service metric: across the weekly matrix, driver--fleet--grid failure accounts for 209 of 300 rows.}
+\label{fig:failure}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/fig5_grid_policy_tradeoff.pdf}
+\caption{Grid-policy trade-off (Section~\ref{sec:results}). PeakPenalty lowers selected peak metrics but does not rescue all-pass acceptability after driver and fleet gates fail; the result is a bounded grid trade-off, not a rescue mechanism.}
+\label{fig:gridtradeoff}
+\end{figure}
+
 \subsection*{Supplementary tables}
 
 \paragraph{ServiceGridWeighted coefficient sensitivity ablation.} The six weight variants are: the base weights $320/175/120/95/55$ (with grid-penalty terms $48/32/18$); the normalized equivalents ($\div100$); equal service weights $100/100/100/100/100$; no grid penalty ($Q,P,R$ coefficients set to zero); and the base weights scaled by $\pm25\%$. Each was run at 35\% capacity for severities~0 and~1 across both grid policies and the five weekly seeds. Table~\ref{tab:sgwablation} reports the all-pass rates: every variant gives 1.00 under full compliance and 0.00 at severity~1, and the normalized variant reproduces the base weights' per-episode outcomes exactly, so the screening conclusion does not depend on the coefficient values. We restrict the ablation to severities~0 and~1 because these bracket the only non-trivial transition: all-pass is already $0.000$ for \emph{all} policies at severities~2 and~3 (Table~\ref{tab:weeklyseverity}), so no coefficient choice can lower it further, and coefficient-insensitivity at those higher severities is automatic. The $1.00\!\to\!0.00$ transition between severity~0 and~1 is therefore the discriminating case, and it is where we confirm the weights do not matter.
@@ -1091,6 +1057,45 @@ Deferral cap & -- & defer lowest-priority flexible low-risk subset after trigger
 \end{tabularx}
 \end{table}
 
+\paragraph{Targeted 28-day confirmation.} Table~\ref{tab:target28} reports the targeted 28-day (672 h) behavioral severity confirmation at 35\% capacity (five seeds), discussed in Section~\ref{sec:results}; all-pass falls from 1.000 at severity~0 to 0.000 at severity~1, consistent with the weekly collapse.
 
+\begin{table}[H]
+\centering
+\caption{Supplementary: targeted 28-day behavioral severity confirmation (35\% capacity, five seeds, 672 h horizon).}
+\label{tab:target28}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{cccccccc}
+\hline
+Severity & Driver pass & Fleet pass & Grid pass & All-pass & Actual/fleet events & Delivered ratio & Peak ratio \\
+\hline
+0 & 1.000 & 1.000 & 1.000 & 1.000 & 0.995 & 1.000 & 0.930 \\
+1 & 0.000 & 0.000 & 0.000 & 0.000 & 1.147 & 0.985 & 0.944 \\
+2 & 0.000 & 0.000 & 0.000 & 0.000 & 1.625 & 0.954 & 0.956 \\
+3 & 0.000 & 0.000 & 0.000 & 0.000 & 2.566 & 0.936 & 0.979 \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+\paragraph{Threshold-slack robustness envelope.} Table~\ref{tab:envelope} reports acceptability under a global threshold-slack factor (all 14 gate margins scaled simultaneously), discussed in Section~\ref{sec:robust}; the severity-1 collapse persists until the whole gate system is loosened two- to threefold.
+
+\begin{table}[H]
+\centering
+\caption{Supplementary: robustness envelope---acceptability under a global threshold-slack factor (all 14 gate margins scaled simultaneously; slack $>1$ loosens; 20-seed service-oriented family).}
+\label{tab:envelope}
+\begin{tabular}{ccccc}
+\hline
+Slack & All-pass sev 0 & All-pass sev 1 & Graded frac.\ sev 1 & $\geq$1 actor sev 1 \\
+\hline
+0.50 (tighter) & 0.912 & 0.000 & 0.725 & 0.246 \\
+0.75 & 0.929 & 0.000 & 0.766 & 0.354 \\
+1.00 (nominal) & 0.967 & 0.012 & 0.793 & 0.433 \\
+1.25 & 0.992 & 0.046 & 0.827 & 0.567 \\
+1.50 & 0.996 & 0.071 & 0.860 & 0.700 \\
+2.00 & 0.996 & 0.458 & 0.947 & 1.000 \\
+3.00 (looser) & 1.000 & 0.883 & 0.992 & 1.000 \\
+\hline
+\end{tabular}
+\end{table}
 
 \end{document}
