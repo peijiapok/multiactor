@@ -777,7 +777,7 @@ this section and should not be confused: $\sigma^\star=0.44$--$0.68$ is the nomi
 calibration across capacities; the slack-resolved calibration variant (Supplementary
 Fig.~\ref{fig:eqcalib}) gives $\sigma^\star=0.25$ at $35\%$ capacity because its incentive
 responsiveness differs; and the full game-parameter sweep gives the range
-$\sigma^\star\in[0.13,1.77]$. All are in normalised utility units, not monetary tariffs.
+$\sigma^\star\in[0.13,1.77]$. All are in normalised utility units, not monetary tariffs. We emphasize that $\sigma^\star$ is a \emph{post-calibration planning instrument}, not a quantity an operator could set without prior information: computing it requires an estimate of the compliance-response function $\Phi$---and hence of the cost-heterogeneity scale $s$ and externality strength $\beta$---which an operator would obtain by fitting $\Phi$ to a pilot or historical managed-charging dataset before deployment (the observability and estimation requirements are detailed in Section~\ref{sec:limitations}). Because $\sigma^\star$ is monotone in these parameters, mis-specifying $\Phi$ does not change the qualitative conclusion but shifts the required incentive \emph{within} the $[0.13,1.77]$ band already mapped by the sweep; an operator who over-estimates compliance responsiveness would simply under-provide the incentive and converge more slowly, which a subsequent re-estimation would correct. The planning value of $\sigma^\star$ is therefore the existence and bounded magnitude of a restoring incentive, not a single deployable number.
 The grid policy modulates the incentive
 required, but its effect is capacity-dependent rather than uniform: GridPeakPenalty
 lowers the required incentive at $50\%$ capacity but not at $35\%$. The cooperative Nash bargaining solution---the point that balances gains across the three
@@ -804,7 +804,7 @@ all-pass $=0.000$, the relative price of anarchy stays in $[1.18,1.83]$ (above o
 every tested case, and concentrated rather than uniform across that range: median $1.42$,
 interquartile range $[1.37,1.60]$, with $41\%$ of configurations in $[1.4,1.6]$ and only
 $11\%$ above $1.7$), and the incentive $\sigma^\star\in[0.13,1.77]$ restores
-modelled all-pass within the explored grid (Supplementary Fig.~\ref{fig:eqsens}). These three weight sets are not chosen to support the price-of-anarchy finding; they are the three canonical normative stances---utilitarian, user-/adoption-centric, and system-operator---that bracket the simplex of $(w_D,w_F,w_G)$, and the price of anarchy stays above one for all of them, so the welfare-gain conclusion does not depend on a particular weighting. The
+modelled all-pass within the explored grid (Supplementary Fig.~\ref{fig:eqsens}). These three weight sets are not chosen to support the price-of-anarchy finding; they are the three canonical normative stances---utilitarian, user-/adoption-centric, and system-operator---that bracket the simplex of $(w_D,w_F,w_G)$ (the exact vectors are listed in Supplementary Table~\ref{tab:weights}), and the price of anarchy stays above one for all of them, so the welfare-gain conclusion does not depend on a particular weighting. The
 equilibrium is unique throughout and contraction-stable except under simultaneously high
 externality and very low cost heterogeneity ($\beta=4$, $s=0.25$), where uniqueness
 still holds. The roughly order-of-magnitude spread in $\sigma^\star$ is driven almost
@@ -1157,6 +1157,23 @@ Slack & All-pass sev 0 & All-pass sev 1 & Graded frac.\ sev 1 & $\geq$1 actor se
 1.50 & 0.996 & 0.071 & 0.860 & 0.700 \\
 2.00 & 0.996 & 0.458 & 0.947 & 1.000 \\
 3.00 (looser) & 1.000 & 0.883 & 0.992 & 1.000 \\
+\hline
+\end{tabular}
+\end{table}
+
+\paragraph{Welfare-weight sets in the price-of-anarchy sweep.} Table~\ref{tab:weights} lists the three welfare-weight vectors $(w_D,w_F,w_G)$ used in the game-parameter sweep of Section~\ref{sec:game} (one of the four sweep dimensions, alongside externality strength $\beta$, cost-heterogeneity scale $s$, and compliance anchor $\rho_0$). They are the three canonical normative stances bracketing the weight simplex---utilitarian, user-/adoption-centric, and system-operator---and the price of anarchy stays above one for all of them, so the welfare-gain conclusion does not depend on the choice of weights.
+
+\begin{table}[H]
+\centering
+\caption{Supplementary: the three welfare-weight sets $(w_D,w_F,w_G)$ (driver, fleet, grid) used in the price-of-anarchy sweep (Section~\ref{sec:game}). The same three sets are applied at each capacity. The actor utilities are min--max normalised within each capacity, so the weights combine comparable normalised utilities.}
+\label{tab:weights}
+\begin{tabular}{llccc}
+\hline
+Label & Normative stance & $w_D$ & $w_F$ & $w_G$ \\
+\hline
+Equal / utilitarian & no actor prioritized & $1/3$ & $1/3$ & $1/3$ \\
+Driver-heavy & user-/adoption-centric & $0.50$ & $0.25$ & $0.25$ \\
+Grid-heavy & system-operator & $0.25$ & $0.25$ & $0.50$ \\
 \hline
 \end{tabular}
 \end{table}
