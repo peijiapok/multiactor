@@ -26,11 +26,27 @@
 `tectonic` compiles clean (EXIT=0), **no undefined references or citations**. Main text ends ~page 41;
 references 41–48; supplement 49–55.
 
+## Reviewer 6 (Minor Revision) — also done this session
+- **#1 published controllers** (main ask): new Results subsection `sec:published` + `tab:published`
+  + supplementary `fig:published`. Applied the framework to EDF (Liu&Layland 1973 — canonical
+  scheduler, ACN family) and uncoordinated immediate charging. At full compliance all three hit
+  91.9–95.4% reliability, but same-episode all-pass = 100% (ServiceFirst) / 20% (EDF) / 0%
+  (uncoordinated) — framework discriminates among established controllers (single-metric pass,
+  conjunction fail). Ran `run_uncoordinated_baseline_20260620.py`; consolidated in
+  `published_controller_comparison_20260620.py`. Added Liu&Layland 1973 + Dertouzos&Mok 1989 cites.
+- **#2 gate-by-gate table** `tab:marginaljoint` (marginal vs joint, primary result).
+- **#3 Stackelberg observability** already present (Limitations) — confirmed.
+- Minor: gate collinearity note; Table 2 caption (per-session vs per-timestep); IEEE-33 voltage
+  trim; CIs in first Results paragraph; capacity justification at first mention.
+- `RESPONSE_TO_REVIEWER6_20260620.md`. Compiles clean, 0 undefined, 58–59pp.
+
 ## Git state — ACTION NEEDED
-Local repo is **3 commits ahead** of the GitHub remote (`origin` has only the initial `5026c72`):
+Local repo is **5 commits ahead** of the GitHub remote (`origin` has only the initial `5026c72`):
 - `f4f6fd4` R5 revision (oracle + marginal-vs-joint + data availability + framing)
 - `cfb6941` Compression (Strategy A)
 - `fbbd1fa` README update
+- `686c3ce` / PDF-rebuild commits
+- `15bae51` R6 (published-controller comparison + gate-by-gate table + minor fixes)
 
 **These are NOT yet on GitHub.** Push them with fresh credentials after rotating the token (below):
 ```
