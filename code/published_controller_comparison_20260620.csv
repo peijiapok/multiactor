@@ -1,0 +1,4 @@
+controller,citation,trip_reliability_pct,driver_gate,fleet_gate,grid_gate,all_pass,p95_wait_min
+ServiceFirst (LeastLaxity-anchored),Dertouzos-Mok 1989 (LLF),95.4,1.0,1.0,1.0,1.0,0.0
+Earliest-Deadline-First (EDF),Liu-Layland 1973; ACN family Lee 2021,94.6,0.2,1.0,1.0,0.2,0.0
+Uncoordinated immediate charging,Clement-Nyns 2010; Ma 2013,91.9,0.0,0.0,0.0,0.0,3567.6
