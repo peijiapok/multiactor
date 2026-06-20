@@ -118,7 +118,7 @@ The stakeholders are: drivers, who require adequate charging service and reliabi
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.95\textwidth]{figures/fig1_multi_actor_framework.pdf}
+\includegraphics[width=0.68\textwidth]{figures/fig1_multi_actor_framework.pdf}
 \caption{Multi-actor EV charging evaluation framework. The figure summarizes the screening logic: a policy is screened as acceptable under this study's gates only when the driver, fleet, and grid gates pass simultaneously.}
 \label{fig:framework}
 \end{figure}
@@ -331,7 +331,7 @@ Arrival hour (local-time aligned) & 9.76 & 10.02 & 0.068 & 0.26 \\
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.98\textwidth]{figures/acn_validation_overlay_20260615.pdf}
+\includegraphics[width=0.74\textwidth]{figures/acn_validation_overlay_20260615.pdf}
 \caption{Generated simulator sessions (red) versus real ACN-Data (blue). Cumulative distributions of delivered energy and dwell duration and the arrival-hour histogram (local-time aligned) reproduce the central mass of the real distributions, while under-representing some extreme tails (Section~\ref{sec:extval}).}
 \label{fig:extval}
 \end{figure}
@@ -346,7 +346,7 @@ Finally, we test whether the headline result depends on the specific demand dist
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.98\textwidth]{figures/fig2_actor_gate_acceptability_matrix.pdf}
+\includegraphics[width=0.82\textwidth]{figures/fig2_actor_gate_acceptability_matrix.pdf}
 \caption{Multi-actor acceptability collapses one severity step before the individual gates do. (A)~Pass rate for the driver, fleet, and grid gates and their all-pass conjunction (highlighted) as a function of behavior severity, averaged over the service-oriented fleet policies, both grid policies, and all capacities. (B)~All-pass acceptability rate versus severity for ServiceFirst and ServiceGridWeighted; the two service-oriented policies are indistinguishable, and same-episode all-pass falls from 96.7\% under full compliance to 1.2\% at severity~1 even though the individual gates still pass at 0.050/0.188/0.321. Pass rates are 20-seed means across three capacities. Reading guide: read \emph{across severity} (left to right) for behavioral sensitivity, \emph{down the actor gates} (driver/fleet/grid) for which actor constraint binds, and compare the highlighted all-pass row against the individual gate rows to see the conjunction fail before any single gate does. This is a joint-threshold result under the stated normative gates, not a physical discontinuity in charging service.}
 \label{fig:matrix}
 \end{figure}
@@ -407,7 +407,7 @@ Uncoordinated immediate charging & 91.9\% & 0.00 & 0.00 & 0.00 & \textbf{0.00} &
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.95\textwidth]{figures/fig3_behavioral_severity_curve.pdf}
+\includegraphics[width=0.72\textwidth]{figures/fig3_behavioral_severity_curve.pdf}
 \caption{Behavioral severity curve. The result claim is that request-event pressure rises smoothly with severity, while the same-episode all-pass conjunction fails at severity 1 under the current gates.}
 \label{fig:severity}
 \end{figure}
@@ -436,7 +436,7 @@ This same-episode framing is precisely what distinguishes the screen from scenar
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.96\textwidth]{figures/fig_marginal_vs_joint.pdf}
+\includegraphics[width=0.82\textwidth]{figures/fig_marginal_vs_joint.pdf}
 \caption{Scenario-averaged acceptability is a mirage; same-episode feasibility is the deployment question (severity~1, 20-seed service-oriented family). (A)~Marginal view: each of the fourteen gate criteria scored by the fraction of episodes it passes on its own; nine pass in $\geq98\%$ of episodes and the mean is $0.79$ ($\approx$11 of 14), so a per-criterion dashboard reads as broadly acceptable. (B)~Joint view: the same data under increasingly strict conjunction---mean single criterion ($79\%$), best and weakest single actor gate ($32\%$ and $5\%$), and the same-episode all-fourteen conjunction ($1.2\%$). The collapse from $79\%$ marginal to $1.2\%$ joint is the core quantity the framework measures, because the binding violations fall in different episodes.}
 \label{fig:marginaljoint}
 \end{figure}
@@ -492,7 +492,7 @@ The diagnostic value of the framework is not the pooled $1.2\%$ figure but the d
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.99\textwidth]{figures/fig_eq_diagnostic.pdf}
+\includegraphics[width=0.88\textwidth]{figures/fig_eq_diagnostic.pdf}
 \caption{Disaggregated diagnosis. (A)~All-pass feasibility by charger capacity and grid policy at full compliance (green) and severity~1 (red): the collapse is uniform across capacity, so infrastructure is not the lever. (B)~Actor-gate pass rates by capacity at severity~1: the driver-service gate binds first (lowest-passing) across capacities, while the grid gate is healthiest at low capacity. (C)~All-pass (bars) and request-event churn ratio (line) by behavior type: self-service behaviors (high churn, $1.3$--$9.5\times$) collapse feasibility and bind the driver gate, whereas mild inattention (low churn) does not.}
 \label{fig:eqdiag}
 \end{figure}
@@ -537,7 +537,7 @@ On the scheduler side the threshold is scheduler-independent. Earliest-Deadline-
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.98\textwidth]{figures/fig_robustness_acceptability.pdf}
+\includegraphics[width=0.82\textwidth]{figures/fig_robustness_acceptability.pdf}
 \caption{Robustness of the acceptability definition. (A)~Fraction of severity-1 episodes failing each binding sub-criterion, coloured by actor; the collapse is driven by four distinct criteria across all three actors, not a single tight gate. (B)~Acceptability rate under alternative aggregation logics and the graded fraction-of-criteria index; the degradation survives softer aggregation, while the graded index ($\approx0.79$ of criteria still passing at severity~1) avoids overstating a binary cliff. Twenty-seed service-oriented family.}
 \label{fig:robust}
 \end{figure}
@@ -733,7 +733,7 @@ best response up, moving the equilibrium toward full compliance.}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.98\textwidth]{figures/fig_eq_allpass_vs_incentive.pdf}
+\includegraphics[width=0.74\textwidth]{figures/fig_eq_allpass_vs_incentive.pdf}
 \caption{All-pass acceptability of the induced driver equilibrium as a function of the
 compliance incentive $\sigma$, for the two grid policies at each capacity. The selfish
 equilibrium ($\sigma=0$, red marker) is unacceptable; a bounded incentive restores
@@ -754,7 +754,7 @@ mechanism expands all three utilities toward the bargaining target.}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.95\textwidth]{figures/fig_eq_poa.pdf}
+\includegraphics[width=0.72\textwidth]{figures/fig_eq_poa.pdf}
 \caption{Left: price of anarchy $W_{\mathrm{NBS}}/W_{\mathrm{selfish}}$ by capacity
 (coordination is worth roughly a $47\%$ welfare gain). Right: minimum incentive
 $\sigma^\star$ that restores modelled all-pass, by capacity and grid policy.}
