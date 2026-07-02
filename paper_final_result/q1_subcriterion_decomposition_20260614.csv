@@ -1,0 +1,15 @@
+criterion,column,rule,fail_frac_sev0,mean_value_sev0,n_sev0,fail_frac_sev1,mean_value_sev1,n_sev1,delta_fail_frac
+D3 critical-RND-delta,critical_rnd_delta_vs_ll,le 24,0.0,0.0,240,0.9208333333333333,46.13333333333333,240,0.9208333333333333
+F4 p95-wait-delta(min),p95_wait_delta_vs_ll_min,le 30,0.0,0.0,240,0.8125,48.999999999999986,240,0.8125
+G4 squared-load-ratio,squared_load_proxy_ratio_vs_anchor,le 1.1,0.0,0.9836262922140387,240,0.5458333333333333,1.1061691231431017,240,0.5458333333333333
+G2 ramp-ratio,ramp_p95_ratio_vs_anchor,le 1.1,0.03333333333333333,0.9986905202246726,240,0.4625,1.0934127780236396,240,0.4291666666666667
+D2 reliability-delta(pp),reliability_delta_vs_ll_pp,ge -0.5,0.0,-0.0009667440061870516,240,0.13333333333333333,-0.19049769130569114,240,0.13333333333333333
+G1 peak-ratio,peak_ratio_vs_ll,le 1.05,0.0,0.9395738611803093,240,0.0125,0.953574364130512,240,0.0125
+F3 max-queue-delta,max_queue_delta_vs_anchor,le 2.0,0.0,-1.6416666666666666,240,0.004166666666666667,-1.0458333333333334,240,0.004166666666666667
+F2 mean-queue-delta,mean_queue_delta_vs_anchor,le 1.0,0.0,0.0,240,0.0,0.04089781746031741,240,0.0
+D1 delivered-ratio,delivered_ratio_vs_ll,ge 0.95,0.0,0.9998887382997336,240,0.0,0.9887864209454317,240,0.0
+F1 RND-delta,requested_not_delivered_delta_vs_anchor,le 117,0.0,0.0,240,0.0,46.34583333333333,240,0.0
+F6 demand-charge-ratio,demand_charge_ratio_vs_anchor,le 1.1,0.0,0.9395738611803093,240,0.0,0.953574364130512,240,0.0
+F5 energy-cost-ratio,energy_cost_ratio_vs_anchor,le 1.1,0.0,0.9996876443851674,240,0.0,0.986398372724251,240,0.0
+G3 peak-to-avg-ratio,peak_to_average_ratio_vs_anchor,le 1.1,0.0,0.9399968871901826,240,0.0,0.8690292251101539,240,0.0
+G5 load-factor-delta,load_factor_delta_vs_anchor,ge -0.05,0.0,0.017028524389286596,240,0.0,0.03611793687345602,240,0.0

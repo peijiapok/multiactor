@@ -1,0 +1,9 @@
+variant,all_pass_sev1
+base,0.0
+equal,0.0
+flat_urgent,0.0
+minus50,0.0
+no_reserve,0.0
+plus50,0.0
+reordered,0.0
+soc_heavy,0.0

@@ -1,0 +1,16 @@
+{
+  "status": "ok",
+  "acnsim_version": "unknown",
+  "method": "ACN-Sim Simulator on caltech_acn network (transformer_cap=150 kW, 208V), UncontrolledCharging, GaussianMixtureEvents (8-comp GMM fit on real ACN clean features in local PDT time).",
+  "n_sessions_acnsim": 149,
+  "mean_session_kwh_acnsim_delivered": 12.191,
+  "mean_session_kwh_acnsim_requested": 12.198,
+  "mean_session_kwh_custom_sim": 11.653,
+  "mean_session_kwh_real_acn": 12.175,
+  "peak_aggregate_kw_acnsim": 161.19,
+  "transformer_cap_kw": 150,
+  "sessions_per_day": 80,
+  "n_days": 2,
+  "sessions_dropped_no_free_station": 11,
+  "n_stations": 54
+}

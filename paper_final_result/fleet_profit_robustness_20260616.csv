@@ -1,0 +1,7 @@
+cap,fleet_model,UF_selfish,UF_nbs,poa,nbs_grid,nbs_d
+20,service,0.235,0.545,1.482,PeakPenalty,0.0
+20,profit,0.195,0.32,1.29,PeakPenalty,0.012
+35,service,0.246,0.558,1.458,PeakPenalty,0.0
+35,profit,0.316,0.0,1.046,PeakPenalty,0.0
+50,service,0.135,0.555,1.478,PeakPenalty,0.012
+50,profit,0.135,0.323,1.325,PeakPenalty,0.012

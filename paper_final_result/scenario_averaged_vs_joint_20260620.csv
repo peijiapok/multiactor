@@ -1,0 +1,6 @@
+metric,value
+marginal_mean_frac14,0.7935
+n_pass_98pct,9.0
+best_actor_gate,0.3208
+weakest_actor_gate,0.05
+same_episode_all_pass,0.0125

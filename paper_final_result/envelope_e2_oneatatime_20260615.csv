@@ -1,0 +1,15 @@
+loosened_criterion,sev1_all_pass_after_loosening_this_one
+D3 critical-RND-delta,0.05416666666666667
+F4 p95-wait-delta(min),0.041666666666666664
+D2 reliability-delta(pp),0.029166666666666667
+G2 ramp-ratio,0.016666666666666666
+G4 squared-load-ratio,0.016666666666666666
+D1 delivered-ratio,0.0125
+F3 max-queue-delta,0.0125
+F2 mean-queue-delta,0.0125
+F1 RND-delta,0.0125
+F5 energy-cost-ratio,0.0125
+G1 peak-ratio,0.0125
+F6 demand-charge-ratio,0.0125
+G3 peak-to-avg-ratio,0.0125
+G5 load-factor-delta,0.0125

@@ -1,0 +1,13 @@
+severity_level,severity_label,capacity_pct,n_episodes,n_seeds,driver_pass_rate,fleet_pass_rate,grid_pass_rate,all_pass_rate,all_pass_seed_std,all_pass_seed_min,all_pass_seed_max
+0,full_compliance,20,80,20,1.0,1.0,0.9875,0.9875,0.055901699437494734,0.75,1.0
+0,full_compliance,35,80,20,1.0,1.0,0.975,0.975,0.11180339887498951,0.5,1.0
+0,full_compliance,50,80,20,1.0,1.0,0.9375,0.9375,0.15966659341462627,0.5,1.0
+1,mild_deviation,20,80,20,0.15,0.25,0.6625,0.0375,0.09158688713313082,0.0,0.25
+1,mild_deviation,35,80,20,0.0,0.1125,0.15,0.0,0.0,0.0,0.0
+1,mild_deviation,50,80,20,0.0,0.2,0.15,0.0,0.0,0.0,0.0
+2,moderate_deviation,20,80,20,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+2,moderate_deviation,35,80,20,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+2,moderate_deviation,50,80,20,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+3,severe_deviation,20,80,20,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+3,severe_deviation,35,80,20,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+3,severe_deviation,50,80,20,0.0,0.0,0.0,0.0,0.0,0.0,0.0

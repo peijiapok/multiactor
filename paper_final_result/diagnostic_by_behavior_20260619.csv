@@ -1,0 +1,9 @@
+behavior,driver_service_pass,fleet_operation_pass,grid_pass,all_pass,churn
+FullyCompliant,1.0,1.0,0.967,0.967,0.984
+LimitedAttentionP0025,0.967,1.0,0.867,0.833,0.975
+LimitedAttentionP005,0.8,1.0,0.7,0.533,0.95
+UrgencyDriven,0.0,0.0,0.0,0.0,1.335
+ReserveSeeking,0.0,0.0,0.0,0.0,2.169
+SoCCompliance,0.0,0.0,0.0,0.0,5.526
+PriceSensitive,0.0,0.0,0.0,0.0,6.375
+SoCQueueCompliance,0.0,0.0,0.0,0.0,9.481

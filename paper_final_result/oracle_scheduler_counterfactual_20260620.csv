@@ -1,0 +1,10 @@
+metric,value
+best_single_scheduler,0.0167
+per_episode_oracle,0.05
+oracle_ci_lo,0.0
+oracle_ci_hi,0.1167
+oracle_cap20,0.15
+oracle_cap35,0.0
+oracle_cap50,0.0
+edf_severity1,0.1
+full_compliance,0.9667
