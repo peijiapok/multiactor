@@ -17,7 +17,8 @@ Generating scripts are in `../code/`.
 | Fig. oracle scheduler | `oracle_scheduler_counterfactual_20260620.csv` (← `seed20_row_results`, `edf_baseline_rows`) | `oracle_scheduler_counterfactual_20260620.py` |
 | Fig. robustness of acceptability | `q1_subcriterion_decomposition_20260614.csv`, `q2_alternative_aggregation_20260614.csv` | `build_final_figures_20260609.py` |
 | Fig. instrument counterfactual | `instrument_counterfactual_20260630.csv` | `plot_instrument_counterfactual_20260630.py` |
-| Fig. apartment vs workplace | `apartment_vs_workplace_20260630.csv` | `run_apartment_vs_workplace_20260630.py` |
+| Fig. apartment vs workplace (cross-ecology) | `apartment_vs_workplace_20260630.csv` | `run_apartment_vs_workplace_20260630.py` |
+| Fig. information integrity (2nd compliance axis) | `information_integrity_20260706.csv` (+ `apartment_vs_workplace_20260630.csv` for the action-axis curve) | `run_information_integrity_20260706.py` |
 | Fig. game: best-response / all-pass-vs-incentive / utility-triangle / PoA | `equilibrium_surface_real_20260616.csv`, `equilibrium_rows_20260616.csv`, `equilibrium_results_real_20260616.json`, `response_surface_rows_20260616.csv`, `response_surface_rows_cliff20_20260616.csv` | `gametheory_equilibrium_20260616.py` + `make_equilibrium_figures_20260616.py` |
 
 ## Supplementary figures
