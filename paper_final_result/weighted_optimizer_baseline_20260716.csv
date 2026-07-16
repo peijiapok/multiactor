@@ -1,0 +1,5 @@
+severity,n_controllers,weighted_feasible_frac,weighted_sel_allpass_mean,weighted_sel_allpass_max,hard_constrained,best_reliability_pct,best_reliability_allpass,menu_max_allpass
+0,4,0.004,0.95,1.0,FleetServiceFirst/GridPeakPenalty,95.9,1.0,1.0
+1,4,0.0,0.0,0.0,EMPTY (no jointly-feasible controller),95.8,0.0,0.0
+2,4,0.0,0.0,0.0,EMPTY (no jointly-feasible controller),95.3,0.0,0.0
+3,4,0.0,0.0,0.0,EMPTY (no jointly-feasible controller),95.1,0.0,0.0
