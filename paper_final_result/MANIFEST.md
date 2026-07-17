@@ -18,6 +18,7 @@ Generating scripts are in `../code/`.
 | Fig. robustness of acceptability | `q1_subcriterion_decomposition_20260614.csv`, `q2_alternative_aggregation_20260614.csv` | `build_final_figures_20260609.py` |
 | Fig. instrument counterfactual | `instrument_counterfactual_20260630.csv` | `plot_instrument_counterfactual_20260630.py` |
 | Fig. apartment vs workplace (cross-ecology) | `apartment_vs_workplace_20260630.csv` | `run_apartment_vs_workplace_20260630.py` |
+| Fig. minimal 3-gate vs 14-gate collapse (conjunction-artifact refutation) | `minimal_gateset_20260716.csv` | `run_minimal_gateset_20260716.py` |
 | Fig. optimizer baselines vs gate screen (weighted-sum + hard-constrained) | `weighted_optimizer_baseline_20260716.csv` | `run_weighted_optimizer_baseline_20260716.py` |
 | Fig. equal-budget incentive comparison | `incentive_comparison_20260716.csv` | `run_incentive_comparison_20260716.py` + `plot_incentive_comparison_20260716.py` |
 | Fig. information integrity (2nd compliance axis) | `information_integrity_20260706.csv` (+ `apartment_vs_workplace_20260630.csv` for the action-axis curve) | `run_information_integrity_20260706.py` |
