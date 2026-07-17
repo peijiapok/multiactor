@@ -1,0 +1,9 @@
+mode,dev_target,dev_realized,all_pass,all_pass_lo,all_pass_hi,n_rows
+self_service,0.0,0.0,1.0,1.0,1.0,40
+self_service,0.025,0.0249,0.0,0.0,0.0,40
+self_service,0.05,0.0494,0.0,0.0,0.0,40
+self_service,0.1,0.0977,0.0,0.0,0.0,40
+benign,0.0,0.0,1.0,1.0,1.0,40
+benign,0.025,0.0249,0.6,0.45,0.75,40
+benign,0.05,0.0494,0.05,0.0,0.125,40
+benign,0.1,0.0977,0.0,0.0,0.0,40

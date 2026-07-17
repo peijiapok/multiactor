@@ -5,7 +5,7 @@ import pandas as pd, numpy as np
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-SRC=Path("/home/jia/multi actor/equilibrium_optimization_20260616/incentive_comparison_20260716.csv")
+SRC=Path("/home/jia/multi actor/equilibrium_optimization_20260616/incentive_comparison_20260717.csv")  # 20 seeds + CIs
 FIGDIR=Path("/home/jia/multi actor/final_applied_energy_package_20260609/figures")
 RESDIR=Path("/home/jia/multi actor/final_applied_energy_package_20260609/paper_final_result")
 df=pd.read_csv(SRC)
@@ -22,14 +22,15 @@ for sc in ["flat_tou","slack","compliance","override_fee"]:
     d=df[df.scheme==sc].sort_values("budget")
     if len(d)==0: continue
     ls="--" if sc=="override_fee" else "-"
-    ax.plot(d.budget,d.all_pass,ls,color=COL[sc],marker=MK[sc],lw=2,ms=6,label=LAB[sc])
+    yerr=[d.all_pass-d.all_pass_lo, d.all_pass_hi-d.all_pass]
+    ax.errorbar(d.budget,d.all_pass,yerr=yerr,fmt=ls,color=COL[sc],marker=MK[sc],lw=2,ms=6,capsize=3,label=LAB[sc])
 # none: horizontal baseline at its single value
 n0=df[df.scheme=="none"].all_pass.iloc[0]
 ax.axhline(n0,color=COL["none"],ls=":",lw=1.5,label=LAB["none"]+f" (={n0:.2f})")
 ax.set_xlabel("Incentive budget  (mean transfer per present vehicle, normalised utility units)")
 ax.set_ylabel("Joint all-pass feasibility")
 ax.set_ylim(-0.03,1.05); ax.set_xlim(-0.005,0.205)
-ax.set_title("Equal-budget incentive comparison (5% deviation, 35% capacity)")
+ax.set_title("Equal-budget incentive comparison (5% deviation, 35% capacity; 20 seeds, 95% CIs)")
 ax.grid(alpha=0.3); ax.legend(fontsize=7.5,loc="center left")
 fig.tight_layout()
 out=FIGDIR/"fig_incentive_comparison_20260716.pdf"

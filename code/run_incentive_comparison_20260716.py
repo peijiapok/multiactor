@@ -39,8 +39,8 @@ import numpy as np, pandas as pd
 
 WORKSPACE = Path("/home/jia/thirfty death BRL DQN")
 RUNNER = WORKSPACE / "scripts" / "run_multi_actor_v2_experiment.py"
-OUT = Path("/home/jia/multi actor/equilibrium_optimization_20260616"); DATE="20260716"
-SEEDS=[4541,4542,4543,4544,4545]; CAPACITIES=[35]; EPISODE_HOURS=168
+OUT = Path("/home/jia/multi actor/equilibrium_optimization_20260616"); DATE="20260717"
+SEEDS=list(range(4541,4561)); CAPACITIES=[35]; EPISODE_HOURS=168   # 20 seeds + bootstrap CIs
 DEV_TARGET=0.05                       # the collapse point (all-pass ~ 0 with no incentive)
 BUDGETS=[0.0,0.02,0.05,0.10,0.15,0.20]  # average transfer per present vehicle (utility units)
 KAPPA_MIN=0.05; KAPPA_SLOPE=0.15      # retention cost kappa_i = MIN + SLOPE*urgency  (0.05..0.20)
@@ -111,7 +111,14 @@ def run_cell(mav2,scheme,budget):
     mav2.POLICY_BY_NAME={p.name:p for p in mav2.POLICIES}
     agg=mav2.run_matrix(SEEDS,CAPACITIES,pols); rows=pd.DataFrame(mav2.add_actor_scoring(agg["rows"]))
     rows=rows[rows.policy!="LeastLaxity"].copy()
-    return float(rows["all_pass"].mean()), float(np.mean(DEV_ACC)) if DEV_ACC else 0.0
+    return rows["all_pass"].values, float(np.mean(DEV_ACC)) if DEV_ACC else 0.0
+
+def boot_ci(vals,n=10000):
+    vals=np.asarray(vals,float)
+    if len(vals)==0: return float("nan"),float("nan"),float("nan")
+    rng=np.random.default_rng(12345)
+    means=vals[rng.integers(0,len(vals),size=(n,len(vals)))].mean(axis=1)
+    return float(vals.mean()),float(np.percentile(means,2.5)),float(np.percentile(means,97.5))
 
 def main():
     OUT.mkdir(parents=True,exist_ok=True); mav2=import_runner(); mav2.set_output_dir(OUT/"runner_raw_incent")
@@ -122,17 +129,18 @@ def main():
     for scheme in SCHEMES:
         for b in BUDGETS:
             if scheme=="none" and b>0: continue          # none is budget-independent
-            ap,dr=run_cell(mav2,scheme,b)
-            recs.append(dict(scheme=scheme,budget=b,dev_realized=round(dr,4),all_pass=round(ap,4)))
-            print(f"{scheme:12s} b={b:.3f} realized_dev={dr:.4f} -> all_pass={ap:.4f}",flush=True)
+            ap_arr,dr=run_cell(mav2,scheme,b)
+            m,lo,hi=boot_ci(ap_arr)
+            recs.append(dict(scheme=scheme,budget=b,dev_realized=round(dr,4),
+                             all_pass=round(m,4),all_pass_lo=round(lo,4),all_pass_hi=round(hi,4),
+                             n_rows=len(ap_arr)))
+            print(f"{scheme:12s} b={b:.3f} dev={dr:.4f} -> all_pass={m:.4f} [{lo:.4f},{hi:.4f}] n={len(ap_arr)}",flush=True)
     df=pd.DataFrame(recs); df.to_csv(OUT/f"incentive_comparison_{DATE}.csv",index=False)
-    print(f"\nwrote {len(df)} rows in {time.time()-start:.0f}s")
+    print(f"\nwrote {len(df)} rows in {time.time()-start:.0f}s ({len(SEEDS)} seeds)")
     eqb=df[df.scheme!="override_fee"]
     piv=eqb.pivot_table(index="budget",columns="scheme",values="all_pass")
-    print("\n=== all-pass by equal budget b and allocation scheme (dev=5%, 35% cap) ===")
+    print("\n=== all-pass by equal budget and scheme (dev=5%, 35% cap, 20 seeds) ===")
     print(piv.to_string())
-    print("\noverride_fee (revenue-generating, not equal-budget):")
-    print(df[df.scheme=='override_fee'][['budget','all_pass','dev_realized']].to_string(index=False))
 
 if __name__=="__main__":
     main()
