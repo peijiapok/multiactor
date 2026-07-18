@@ -125,7 +125,7 @@ The stakeholders are: drivers, who require adequate charging service and reliabi
 \label{fig:worked}
 \end{figure}
 
-\figref{fig:framework} shows the system framework. Driver behavior produces actual request events. An operator policy converts candidate events into recommended actions under charger capacity. A grid policy can adjust the recommended actions. The final charging service is evaluated against driver, charging operator, and grid gates. All-pass acceptability is the logical conjunction of those three pass indicators.
+\figref{fig:framework} shows how the study works end to end. \emph{Stage~1---the screen} (top) is the deployability test: ACN-calibrated demand and a chosen site capacity feed a three-actor decision (the grid may issue a peak signal, the operator forms a least-laxity recommendation, and each driver either follows or overrides it); one episode is simulated, per-actor metrics are measured, and fourteen gates are checked in the \emph{same} episode, whose logical conjunction is all-pass. Repeating this over the full factorial (behavior severity $\times$ capacity $\times$ grid $\times$ operator policy $\times$ seeds) yields the all-pass \emph{rate}. \emph{Stage~2---the mechanism} (bottom) explains and repairs the collapse the screen reveals: driver compliance is modelled as a congestion game whose no-incentive (selfish) equilibrium coincides with the collapse, and a bounded compliance incentive $\sigma$---set by the operator as a Stackelberg leader---moves the equilibrium back into the feasible set (Section~\ref{sec:game}).
 
 \paragraph{What is centralized and what is decentralized here.} In this study, ``decentralized'' means the actors have \emph{separate goals, information, and decision rights}---not that each vehicle runs its own charging optimization. The charging operator \emph{centrally} computes the charging recommendations under the site's capacity limit; the grid supplies an operating limit, price, or peak-management signal; and drivers keep local authority to accept, override, or opt out based on their own needs. The system is therefore \emph{hierarchically coordinated and partially decentralized}: the scheduling is centralized, while participation and the charging that actually happens are decentralized. We do \emph{not} claim a distributed algorithm in which each vehicle computes its own plan from local information (as in \cite{ma2013,gan2013,liu2019decentralized}).
 
@@ -138,8 +138,8 @@ where the driver's response rule $\pi_D$ depends on their private state $z_{i,t}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.68\textwidth]{figures/fig1_multi_actor_framework.pdf}
-\caption{Multi-actor EV charging evaluation framework. The figure summarizes the screening logic: a policy is screened as acceptable under this study's gates only when the driver, charging operator, and grid gates pass simultaneously.}
+\includegraphics[width=0.99\textwidth]{figures/fig1_multi_actor_framework.pdf}
+\caption{How the study works. Stage~1 (top): the deployability screen---ACN-calibrated demand and a capacity level drive a three-actor decision (grid signal, operator least-laxity recommendation, driver follow/override), one episode is simulated, and fourteen gates are checked in the same episode; their conjunction is all-pass, and sweeping the full factorial (severity $\times$ capacity $\times$ grid $\times$ operator $\times$ seeds) gives the all-pass rate. Stage~2 (bottom): the game-theory layer---the collapse is the no-incentive (selfish) equilibrium of a congestion game, and a bounded compliance incentive $\sigma$ set by the operator (Stackelberg leader) restores feasibility, recovering welfare quantified by a price of anarchy near $1.5$. A policy is deployable only when the driver, operator, and grid gates pass simultaneously.}
 \label{fig:framework}
 \end{figure}
 
