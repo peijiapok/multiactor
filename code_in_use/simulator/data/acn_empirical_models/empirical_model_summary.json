@@ -1,0 +1,642 @@
+{
+  "artifact": "applied_energy_rebuild_empirical_models",
+  "claim_boundary": "Empirical fits describe observed charging-session distributions and operational session/user types. They do not prove psychological traits or managed-charging response.",
+  "cleaning_rules": {
+    "max_dwell_h": 48.0,
+    "max_kwh_delivered": 150.0,
+    "min_dwell_h": 0.016666666666666666
+  },
+  "date": "2026-05-19",
+  "distribution_fits": {
+    "acn_all": {
+      "arrival_hour_distribution": [
+        737,
+        574,
+        394,
+        298,
+        251,
+        124,
+        60,
+        33,
+        23,
+        12,
+        21,
+        73,
+        900,
+        3581,
+        5472,
+        3747,
+        2978,
+        1920,
+        1552,
+        1461,
+        1397,
+        1231,
+        1175,
+        1102
+      ],
+      "day_of_week_distribution": [
+        5058,
+        5741,
+        5901,
+        5717,
+        4853,
+        1059,
+        787
+      ],
+      "dwell_h_lognormal": {
+        "empirical": {
+          "mean": 6.678827954465662,
+          "median": 7.300833333333333,
+          "n": 29116,
+          "p05": 1.1623611111111112,
+          "p25": 3.4908333333333332,
+          "p75": 9.464444444444444,
+          "p95": 11.229375000000001
+        },
+        "fit": "lognormal_mle",
+        "fit_sample": {
+          "mean": 7.214432595814161,
+          "median": 5.320455638625177,
+          "n": 29116,
+          "p05": 1.4957580791990313,
+          "p25": 3.129053495296462,
+          "p75": 8.981743221450149,
+          "p95": 19.231200995910278
+        },
+        "ks_empirical_vs_fit_sample": 0.15819480697898058,
+        "mu": 1.6745486862875472,
+        "n": 29116,
+        "sigma": 0.7760133304821999
+      },
+      "idle_after_done_h": {
+        "mean": 3.062979218639497,
+        "median": 2.2170833333333335,
+        "n": 28594,
+        "p05": -0.015833333333333335,
+        "p25": 0.08527777777777777,
+        "p75": 5.385486111111111,
+        "p95": 8.385583333333331
+      },
+      "kwh_delivered_lognormal": {
+        "empirical": {
+          "mean": 12.174712895541488,
+          "median": 9.055499999999999,
+          "n": 29116,
+          "p05": 0.886,
+          "p25": 5.03575,
+          "p75": 15.14125,
+          "p95": 36.774
+        },
+        "fit": "lognormal_mle",
+        "fit_sample": {
+          "mean": 13.45249171018121,
+          "median": 8.02473106669764,
+          "n": 29116,
+          "p05": 1.4978263818582334,
+          "p25": 4.030168790853777,
+          "p75": 15.880576515136788,
+          "p95": 43.02236198224738
+        },
+        "ks_empirical_vs_fit_sample": 0.08074598159087787,
+        "mu": 2.07947289486076,
+        "n": 29116,
+        "sigma": 1.0124757541265996
+      },
+      "n_sessions": 29116
+    },
+    "acn_caltech_12mo": {
+      "arrival_hour_distribution": [
+        353,
+        421,
+        313,
+        248,
+        197,
+        96,
+        50,
+        26,
+        19,
+        11,
+        2,
+        5,
+        13,
+        194,
+        335,
+        1608,
+        2329,
+        1572,
+        902,
+        715,
+        757,
+        531,
+        357,
+        364
+      ],
+      "day_of_week_distribution": [
+        1788,
+        2078,
+        2168,
+        2059,
+        1951,
+        757,
+        617
+      ],
+      "dwell_h_lognormal": {
+        "empirical": {
+          "mean": 5.9715237393199825,
+          "median": 5.8372222222222225,
+          "n": 11418,
+          "p05": 0.8198333333333333,
+          "p25": 2.3713194444444445,
+          "p75": 8.669444444444444,
+          "p95": 11.860277777777778
+        },
+        "fit": "lognormal_mle",
+        "fit_sample": {
+          "mean": 6.462351326595432,
+          "median": 4.413270517918325,
+          "n": 11418,
+          "p05": 1.0186440192915653,
+          "p25": 2.4226530339299797,
+          "p75": 7.958827421668584,
+          "p95": 18.639186702991623
+        },
+        "ks_empirical_vs_fit_sample": 0.13329830092835881,
+        "mu": 1.481538777514303,
+        "n": 11418,
+        "sigma": 0.8844574754290677
+      },
+      "idle_after_done_h": {
+        "mean": 3.110785857755866,
+        "median": 1.8205555555555555,
+        "n": 10953,
+        "p05": 0.0011111111111111111,
+        "p25": 0.035277777777777776,
+        "p75": 5.549722222222222,
+        "p95": 8.910166666666665
+      },
+      "kwh_delivered_lognormal": {
+        "empirical": {
+          "mean": 8.987154524428032,
+          "median": 6.2835,
+          "n": 11418,
+          "p05": 0.857,
+          "p25": 2.731,
+          "p75": 12.088,
+          "p95": 26.960499999999975
+        },
+        "fit": "lognormal_mle",
+        "fit_sample": {
+          "mean": 9.642034599500722,
+          "median": 5.568313805119541,
+          "n": 11418,
+          "p05": 0.9653373128949695,
+          "p25": 2.720411724038615,
+          "p75": 11.218248865025624,
+          "p95": 31.325976273525487
+        },
+        "ks_empirical_vs_fit_sample": 0.07794710106848836,
+        "mu": 1.7048219213352438,
+        "n": 11418,
+        "sigma": 1.0664357968819542
+      },
+      "n_sessions": 11418
+    },
+    "acn_jpl_12mo": {
+      "arrival_hour_distribution": [
+        373,
+        149,
+        80,
+        50,
+        54,
+        28,
+        10,
+        7,
+        4,
+        1,
+        19,
+        68,
+        887,
+        3376,
+        5075,
+        2050,
+        543,
+        299,
+        525,
+        706,
+        554,
+        648,
+        799,
+        725
+      ],
+      "day_of_week_distribution": [
+        3137,
+        3549,
+        3602,
+        3526,
+        2751,
+        295,
+        170
+      ],
+      "delivered_requested_ratio": {
+        "mean": 0.628168427755296,
+        "median": 0.6145729166666667,
+        "n": 16364,
+        "p05": 0.1965416666666667,
+        "p25": 0.4284888461538462,
+        "p75": 0.802734731934732,
+        "p95": 1.001273085016835
+      },
+      "dwell_h_lognormal": {
+        "empirical": {
+          "mean": 7.194937039211848,
+          "median": 8.484861111111112,
+          "n": 17030,
+          "p05": 1.5445694444444444,
+          "p25": 4.271388888888889,
+          "p75": 9.747777777777777,
+          "p95": 11.118666666666666
+        },
+        "fit": "lognormal_mle",
+        "fit_sample": {
+          "mean": 7.620248543375017,
+          "median": 6.147694190491579,
+          "n": 17030,
+          "p05": 2.1033783900630105,
+          "p25": 3.970185908959933,
+          "p75": 9.618300715685503,
+          "p95": 18.031600551399627
+        },
+        "ks_empirical_vs_fit_sample": 0.19553728714034052,
+        "mu": 1.8090240877710904,
+        "n": 17030,
+        "sigma": 0.6647590080454999
+      },
+      "idle_after_done_h": {
+        "mean": 3.063278336239949,
+        "median": 2.5025,
+        "n": 17011,
+        "p05": -0.01638888888888889,
+        "p25": 0.17041666666666666,
+        "p75": 5.352777777777778,
+        "p95": 8.165555555555557
+      },
+      "kwh_delivered_lognormal": {
+        "empirical": {
+          "mean": 14.1740438194526,
+          "median": 11.030000000000001,
+          "n": 17030,
+          "p05": 1.56,
+          "p25": 6.333,
+          "p75": 17.555999999999997,
+          "p95": 39.8852
+        },
+        "fit": "lognormal_mle",
+        "fit_sample": {
+          "mean": 15.366859951432835,
+          "median": 10.24722423380723,
+          "n": 17030,
+          "p05": 2.26876900919331,
+          "p25": 5.6601211528274655,
+          "p75": 18.733335058810333,
+          "p95": 44.55078863800243
+        },
+        "ks_empirical_vs_fit_sample": 0.0736347621843805,
+        "mu": 2.3173267678299116,
+        "n": 17030,
+        "sigma": 0.8956344827542926
+      },
+      "n_sessions": 17030,
+      "requested_departure_horizon_h": {
+        "mean": 6.383301761890213,
+        "median": 6.816666666666666,
+        "n": 16365,
+        "p05": 1.1333333333333333,
+        "p25": 3.683333333333333,
+        "p75": 8.966666666666667,
+        "p95": 10.696666666666655
+      },
+      "requested_departure_mismatch_min": {
+        "mean": 52.58905489357368,
+        "median": 31.283333333333335,
+        "n": 16365,
+        "p05": -242.56666666666666,
+        "p25": -18.933333333333334,
+        "p75": 124.65,
+        "p95": 372.47999999999956
+      },
+      "requested_kwh_lognormal": {
+        "empirical": {
+          "mean": 26.340181801515524,
+          "median": 20.0,
+          "n": 16364,
+          "p05": 7.0,
+          "p25": 12.0,
+          "p75": 35.0,
+          "p95": 66.0
+        },
+        "fit": "lognormal_mle",
+        "fit_sample": {
+          "mean": 26.006229381427342,
+          "median": 20.21659951309395,
+          "n": 16364,
+          "p05": 6.448918977605887,
+          "p25": 12.584760681150309,
+          "p75": 32.55163870003085,
+          "p95": 64.40178633938031
+        },
+        "ks_empirical_vs_fit_sample": 0.0838425812759716,
+        "mu": 3.0144110240895805,
+        "n": 16364,
+        "sigma": 0.707393386792887
+      }
+    },
+    "acn_office001_12mo": {
+      "arrival_hour_distribution": [
+        11,
+        4,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        11,
+        62,
+        89,
+        106,
+        49,
+        125,
+        40,
+        86,
+        52,
+        19,
+        13
+      ],
+      "day_of_week_distribution": [
+        133,
+        114,
+        131,
+        132,
+        151,
+        7,
+        0
+      ],
+      "dwell_h_lognormal": {
+        "empirical": {
+          "mean": 5.610956420492348,
+          "median": 5.8838888888888885,
+          "n": 668,
+          "p05": 1.0268888888888887,
+          "p25": 3.5947916666666666,
+          "p75": 7.521111111111111,
+          "p95": 9.769208333333331
+        },
+        "fit": "lognormal_mle",
+        "fit_sample": {
+          "mean": 6.120781855022873,
+          "median": 5.010719331291792,
+          "n": 668,
+          "p05": 1.6037810668569592,
+          "p25": 3.081318214130518,
+          "p75": 7.802560255050184,
+          "p95": 14.359803218108786
+        },
+        "ks_empirical_vs_fit_sample": 0.1212574850299401,
+        "mu": 1.5453137328566606,
+        "n": 668,
+        "sigma": 0.704507181636959
+      },
+      "idle_after_done_h": {
+        "mean": 2.22375,
+        "median": 1.2043055555555555,
+        "n": 630,
+        "p05": 0.0011111111111111111,
+        "p25": 0.0025,
+        "p75": 3.834236111111111,
+        "p95": 7.831402777777777
+      },
+      "kwh_delivered_lognormal": {
+        "empirical": {
+          "mean": 15.688089912258816,
+          "median": 12.5335,
+          "n": 668,
+          "p05": 2.1799,
+          "p25": 5.9935,
+          "p75": 23.201,
+          "p95": 37.1738
+        },
+        "fit": "lognormal_mle",
+        "fit_sample": {
+          "mean": 16.940049131140675,
+          "median": 11.564306423504974,
+          "n": 668,
+          "p05": 2.640267154793504,
+          "p25": 5.970325236398335,
+          "p75": 21.79672304762218,
+          "p95": 47.86358257696426
+        },
+        "ks_empirical_vs_fit_sample": 0.05688622754491013,
+        "mu": 2.4194629533183925,
+        "n": 668,
+        "sigma": 0.9134261680901762
+      },
+      "n_sessions": 668
+    },
+    "cross_site_distribution_shift": {
+      "acn_caltech_12mo_vs_acn_jpl_12mo": {
+        "arrival_hour_tvd": 0.5316963655268381,
+        "dwell_ks": 0.23274264748915063,
+        "kwh_delivered_ks": 0.2795991885565199
+      },
+      "acn_caltech_12mo_vs_acn_office001_12mo": {
+        "arrival_hour_tvd": 0.26538488970561247,
+        "dwell_ks": 0.15524022894830414,
+        "kwh_delivered_ks": 0.2740391523836194
+      },
+      "acn_jpl_12mo_vs_acn_office001_12mo": {
+        "arrival_hour_tvd": 0.5061787757427013,
+        "dwell_ks": 0.3710869511710577,
+        "kwh_delivered_ks": 0.12753313103681074
+      }
+    }
+  },
+  "quality": {
+    "drop_reasons": {
+      "acn_caltech_12mo": {
+        "invalid_dwell": 30
+      },
+      "acn_jpl_12mo": {
+        "invalid_dwell": 2
+      },
+      "acn_office001_12mo": {
+        "invalid_dwell": 1
+      }
+    },
+    "source_rows": {
+      "acn_caltech_12mo": 11448,
+      "acn_jpl_12mo": 17032,
+      "acn_office001_12mo": 669
+    }
+  },
+  "session_typology": {
+    "cluster_summaries": [
+      {
+        "arrival_hour": 14.960260891687255,
+        "cluster": 0,
+        "dwell_h": 7.680527976989357,
+        "idle_after_done_h": 1.8542164801267185,
+        "kwh_delivered": 23.78976219028588,
+        "label": "midday-arrival; short-dwell; high-energy; near-requested-departure",
+        "n": 5331,
+        "requested_departure_mismatch_h": 0.04430719689864604,
+        "requested_kwh": 39.87284155212709,
+        "share": 0.32575618698441794,
+        "unique_users": 238,
+        "weekend_fraction": 0.013505908835114648
+      },
+      {
+        "arrival_hour": 14.369404061435308,
+        "cluster": 1,
+        "dwell_h": 9.085466051563033,
+        "idle_after_done_h": 5.452201122641809,
+        "kwh_delivered": 8.381183742351816,
+        "label": "midday-arrival; long-dwell; low-energy; late-unplug",
+        "n": 6938,
+        "requested_departure_mismatch_h": 2.356933554338414,
+        "requested_kwh": 14.109633035181982,
+        "share": 0.4239535594256034,
+        "unique_users": 245,
+        "weekend_fraction": 0.0064860190256546026
+      },
+      {
+        "arrival_hour": 21.7593754459023,
+        "cluster": 2,
+        "dwell_h": 2.615282626802969,
+        "idle_after_done_h": 0.6468502468533255,
+        "kwh_delivered": 7.415895942685022,
+        "label": "off-hour-arrival; short-dwell; low-energy; early-unplug",
+        "n": 4096,
+        "requested_departure_mismatch_h": -0.8379323323567687,
+        "requested_kwh": 16.325372517169164,
+        "share": 0.25029025358997864,
+        "unique_users": 287,
+        "weekend_fraction": 0.06982421874999986
+      }
+    ],
+    "diagnostics": [
+      {
+        "centroid_silhouette": 0.40360962915020643,
+        "k": 3,
+        "sse": 78332.0657600203
+      },
+      {
+        "centroid_silhouette": 0.38997094813228,
+        "k": 4,
+        "sse": 69912.56281562797
+      },
+      {
+        "centroid_silhouette": 0.32555122521645086,
+        "k": 5,
+        "sse": 65456.24280495147
+      }
+    ],
+    "features": [
+      "arrival_sin",
+      "arrival_cos",
+      "log_dwell_h",
+      "log_kwh_delivered",
+      "log_requested_kwh",
+      "requested_departure_mismatch_h_clipped",
+      "idle_after_done_h_clipped",
+      "is_weekend"
+    ],
+    "mode": "jpl_session",
+    "n": 16365,
+    "selected_centroid_silhouette": 0.40360962915020643,
+    "selected_k": 3,
+    "selected_sse": 78332.0657600203,
+    "status": "complete"
+  },
+  "user_typology": {
+    "cluster_summaries": [
+      {
+        "arrival_hour": 20.777535116965883,
+        "cluster": 0,
+        "dwell_h": 3.6933980710229273,
+        "kwh_delivered": 10.053895945798589,
+        "label": "late-arrival; short-dwell; low-energy; near-requested-departure",
+        "n": 89,
+        "requested_departure_mismatch_h": -0.14827398048783236,
+        "requested_kwh": 19.929222481330193,
+        "session_count": 18.539580727671606,
+        "share": 0.2966666666666667,
+        "weekend_fraction": 0.05932046367390363
+      },
+      {
+        "arrival_hour": 14.874210850632283,
+        "cluster": 1,
+        "dwell_h": 7.9796448115723555,
+        "kwh_delivered": 8.317732653080988,
+        "label": "midday-arrival; long-dwell; low-energy; late-unplug",
+        "n": 118,
+        "requested_departure_mismatch_h": 1.9460111381812766,
+        "requested_kwh": 14.083720974885589,
+        "session_count": 42.70511595686102,
+        "share": 0.3933333333333333,
+        "weekend_fraction": 0.01614303323118795
+      },
+      {
+        "arrival_hour": 15.508801631992757,
+        "cluster": 2,
+        "dwell_h": 7.366972297232749,
+        "kwh_delivered": 25.158606374250603,
+        "label": "late-arrival; long-dwell; high-energy; near-requested-departure",
+        "n": 93,
+        "requested_departure_mismatch_h": -0.054470784821378015,
+        "requested_kwh": 42.33962671099176,
+        "session_count": 32.26122988742215,
+        "share": 0.31,
+        "weekend_fraction": 0.02012904577241372
+      }
+    ],
+    "diagnostics": [
+      {
+        "centroid_silhouette": 0.3497535703640974,
+        "k": 3,
+        "sse": 1528.7789776389159
+      },
+      {
+        "centroid_silhouette": 0.31469840912953945,
+        "k": 4,
+        "sse": 1410.1003809950919
+      },
+      {
+        "centroid_silhouette": 0.31477534296720067,
+        "k": 5,
+        "sse": 1239.5976819283683
+      }
+    ],
+    "features": [
+      "session_count_log",
+      "mean_arrival_sin",
+      "mean_arrival_cos",
+      "mean_log_dwell_h",
+      "mean_log_kwh_delivered",
+      "mean_log_requested_kwh",
+      "mean_departure_mismatch_h_clipped",
+      "weekend_fraction"
+    ],
+    "mode": "jpl_user",
+    "n": 300,
+    "selected_centroid_silhouette": 0.3497535703640974,
+    "selected_k": 3,
+    "selected_sse": 1528.7789776389159,
+    "status": "complete"
+  }
+}
